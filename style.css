@@ -1,0 +1,312 @@
+/* ===========================
+   RESET + BASE
+   =========================== */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --header-height: 64px;
+  --bg: #f7f7f7;
+  --bg-rgb: 247, 247, 247;
+  --text: #111;
+  --muted: #666;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* ===========================
+   HEADER + NAV
+   =========================== */
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40px;
+  background: rgba(var(--bg-rgb), 0.88);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  box-shadow:
+    0 1px 0 rgba(180, 180, 180, 0.25),
+    0 25px 45px rgba(0, 0, 0, 0.03);
+}
+
+.logo {
+  font-weight: 500;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 48px;
+}
+
+.nav-left {
+  display: flex;
+  gap: 28px;
+}
+
+.main-nav a {
+  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  position: relative;
+}
+
+.main-nav a.is-active {
+  color: var(--text);
+}
+
+.main-nav a.is-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 100%;
+  height: 1px;
+  background: var(--text);
+  opacity: 0.5;
+}
+
+/* ===========================
+   MAIN
+   =========================== */
+
+main {
+  padding-top: var(--header-height);
+}
+
+/* ===========================
+   HERO (INDEX)
+   =========================== */
+
+.hero {
+  min-height: calc(100vh - var(--header-height));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 24px;
+}
+
+.hero-motto {
+  font-size: clamp(2rem, 4.5vw, 4.8rem);
+  font-weight: 500;
+  max-width: 800px;
+}
+
+/* ===========================
+   CONTENT SECTIONS (INDEX)
+   =========================== */
+
+.content-section {
+  padding: 120px 24px;
+}
+
+.content-block {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 48px;
+}
+
+@media (min-width: 900px) {
+  .content-block {
+    grid-template-columns: 1.2fr 0.8fr;
+  }
+}
+
+/* ===========================
+   SECTION LABEL
+   =========================== */
+
+.section-label {
+  text-align: center;
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
+  letter-spacing: 0.25em;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 64px;
+}
+
+/* ===========================
+   INDEX IMAGES
+   =========================== */
+
+body:not(.gallery-page) .image-wrapper img {
+  max-width: 100%;
+  max-height: 70vh;
+  box-shadow:
+    0 0 60px rgba(0,0,0,0.22),
+    0 0 24px rgba(0,0,0,0.12);
+}
+
+/* =================================================
+   GALLERY PAGE – EDITORIAL MASONRY
+   ================================================= */
+
+body.gallery-page .gallery-section {
+  padding: 140px 24px 160px;
+}
+
+body.gallery-page .gallery-title {
+  text-align: center;
+  font-size: clamp(2rem, 3.5vw, 2.6rem);
+  letter-spacing: 0.45em;
+  font-weight: 500;
+  color: var(--muted);
+  margin-bottom: 96px;
+}
+
+/* ===========================
+   MASONRY
+   =========================== */
+
+.mosaic-grid {
+  max-width: 1500px;
+  margin: 0 auto;
+  column-count: 5;
+  column-gap: 9px;
+}
+
+.mosaic-grid img {
+  width: 100%;
+  height: auto;
+  display: block;
+  margin-bottom: 9px;
+  break-inside: avoid;
+  opacity: 1;
+  cursor: pointer;
+  transition:
+    opacity 0.35s ease-out,
+    transform 0.25s ease;
+}
+
+.mosaic-grid img:hover {
+  transform: scale(1.05);
+}
+
+/* ===========================
+   RESPONSIVE – GALÉRIA
+   =========================== */
+
+@media (max-width: 1300px) {
+  .mosaic-grid {
+    column-count: 3;
+  }
+}
+
+@media (max-width: 900px) {
+  .mosaic-grid {
+    column-count: 2;
+  }
+
+  body.gallery-page .gallery-title {
+    margin-bottom: 72px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mosaic-grid {
+    column-count: 1;
+  }
+}
+
+/* ===========================
+   LIGHTBOX
+   =========================== */
+
+#lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+#lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: auto;
+  height: auto;
+  margin: 0;
+  box-shadow: 0 40px 120px rgba(var(--bg-rgb), 0.5);
+}
+
+/* ===========================
+   SCROLL FADE OVERLAY
+   =========================== */
+
+.scroll-fade-overlay {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--header-height);
+  bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(var(--bg-rgb), 1) 0%,
+      rgba(var(--bg-rgb), 0) 8%,
+      rgba(var(--bg-rgb), 0) 92%,
+      rgba(var(--bg-rgb), 1) 100%
+    );
+}
+
+/* ===========================
+   INDEX – OLDALSÓ GRADIENS
+   =========================== */
+
+body:not(.gallery-page) .scroll-fade-overlay {
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(var(--bg-rgb), 1) 0%,
+      rgba(var(--bg-rgb), 0) 8%
+    ),
+    linear-gradient(
+      to top,
+      rgba(var(--bg-rgb), 1) 0%,
+      rgba(var(--bg-rgb), 0) 8%
+    ),
+    linear-gradient(
+      to right,
+      rgba(var(--bg-rgb), 1) 0%,
+      rgba(var(--bg-rgb), 0) 0%
+    ),
+    linear-gradient(
+      to left,
+      rgba(var(--bg-rgb), 1) 0%,
+      rgba(var(--bg-rgb), 0) 0%
+    );
+}
+/* ===========================
+   INTRO – középre igazított blokk,
+   balra zárt szöveg
+   =========================== */
+
+.intro-inner {
+  max-width: 700px;
+  margin: 0 auto;      /* blokk középre */
+  text-align: left;    /* szöveg balra zárt */
+}

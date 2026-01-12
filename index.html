@@ -1,174 +1,135 @@
 <!DOCTYPE html>
 <html lang="hu">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hudacsekné Horváth Barbara</title>
-  <style>
-    :root {
-      --oval-width: min(80vw, 400px);
-      --oval-height: calc(var(--oval-width) * 0.6);
-      --message-width: min(40vw, 160px);
-      --message-height: calc(var(--message-width) * 0.5);
-    }
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      height: 100vh;
-      background-color: #ffffff;
-      overflow: hidden;
-      position: relative;
-      box-shadow: inset 0 0 180px rgba(0, 0, 0, 0.35);
-    }
-    .name-oval {
-      background-color: #91c9f7;
-      color: #fff;
-      border-radius: 50% / 40%;
-      font-size: clamp(16px, 2.5vw, 36px);
-      text-align: center;
-      cursor: url('https://abs.twimg.com/emoji/v2/72x72/2764.png') 10 10, pointer;
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 2;
-      transition: opacity 0.5s ease;
-      box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
-      width: var(--oval-width);
-      height: var(--oval-height);
-      user-select: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .name-oval span {
-      pointer-events: auto;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      text-align: center;
-      padding: 0 5%;
-      line-height: 1.2;
-    }
-    .message-oval {
-      background-color: #ffffff;
-      border: 2px solid #91c9f7;
-      color: #333;
-      padding: 0.5em;
-      border-radius: 50% / 50%;
-      font-size: 0.8em;
-      text-align: center;
-      width: var(--message-width);
-      height: var(--message-height);
-      position: absolute;
-      z-index: 2;
-      box-shadow: 0 4px 10px rgba(145, 201, 247, 0.5);
-      white-space: pre-line;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      opacity: 0;
-      transition: opacity 1.5s ease;
-    }
-    .fade-in {
-      opacity: 1 !important;
-    }
-    .fade-out {
-      opacity: 0 !important;
-      transition: opacity 2s ease;
-    }
-    .instruction-box {
-      position: absolute;
-      left: 50%;
-      top: calc(50% - 30vh);
-      transform: translateX(-50%);
-      background-color: #fff8e1;
-      border: 2px solid #f7ca72;
-      border-radius: 8px;
-      padding: 1vh 2vw;
-      font-size: 1.4em;
-      font-weight: bold;
-      z-index: 2;
-      text-align: center;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-      box-shadow: 0 2px 8px rgba(247, 202, 114, 0.4);
-    }
-    .arrow-down {
-      position: absolute;
-      left: 50%;
-      top: calc(50% - 10vh);
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-top: 10px solid #f7ca72;
-      z-index: 2;
-      opacity: 1;
-      transition: opacity 0.5s ease;
-    }
-    svg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1;
-    }
-    .animated-line {
-      stroke: #91c9f7;
-      stroke-width: 2;
-      stroke-dasharray: 1000;
-      stroke-dashoffset: 1000;
-      opacity: 0;
-      animation: draw-line 1.5s forwards, fade-in-line 1.5s forwards;
-    }
-    @keyframes draw-line {
-      to {
-        stroke-dashoffset: 0;
-      }
-    }
-    @keyframes fade-in-line {
-      to {
-        opacity: 1;
-      }
-    }
-    .heart {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: red;
-      color: white;
-      padding: 6vw;
-      font-size: 2.5em;
-      border-radius: 50%;
-      box-shadow: 0 0 40px red;
-      opacity: 0;
-      transition: opacity 2s ease;
-      z-index: 10;
-      animation: pulse 1s infinite ease-in-out;
-    }
-    @keyframes pulse {
-      0% { transform: translate(-50%, -50%) scale(1); }
-      50% { transform: translate(-50%, -50%) scale(1.1); }
-      100% { transform: translate(-50%, -50%) scale(1); }
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flashback – Fotós portfólió</title>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="instruction-box" id="instruction">Kattints a névre, ha többet akarsz megtudni róla!</div>
-  <div class="arrow-down" id="arrow"></div>
-  <div class="name-oval" id="centerOval"><span>Hudacsekné Horváth Barbara</span></div>
-  <svg id="lines"></svg>
-  <div class="heart" id="heart">Szeretlek!</div>
-  <audio id="loveSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
 
-  <script>
-    // JavaScript rész változatlan marad
-  </script>
-</body>
+<header class="site-header">
+  <div class="logo">Flashback</div>
+
+  <nav class="main-nav">
+    <div class="nav-left">
+      <a href="#home">Kezdőlap</a>
+      <a href="#portrait">Portré</a>
+      <a href="#street">Street</a>
+      <a href="#about">Névjegy</a>
+      <a href="#contact">Kapcsolat</a>
+    </div>
+    <div class="nav-right">
+      <a href="./gallery.html" class="nav-gallery">Galéria</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1 class="scroll-text hero-motto">
+      A pillanat nem megáll,<br>
+      csak megérkezik.
+    </h1>
+    <div class="hero-logo">[LOGÓ]</div>
+  </section>
+
+  <!-- KEZDŐLAP / BEMUTATKOZÓ -->
+  <section class="intro-section" data-scroll-section>
+    <div class="intro-inner scroll-text">
+      <p class="intro-lead">Üdvözöllek.</p>
+
+      <p>
+        Ez az oldal nem a képek elkészítéséről szól,
+        hanem arról, ami bennük megmarad.
+      </p>
+
+      <p>
+        A fotózás számomra figyelem.
+        Egy rövid idő, amikor nem kell szerepet játszani,
+        és a világ nem siet tovább.
+      </p>
+    </div>
+  </section>
+
+  <!-- PORTRÉ -->
+  <section class="content-section" id="portrait">
+    <div class="content-block">
+      <div class="image-wrapper">
+        <img src="./images/index/portrait1.jpeg" alt="Portré fotó" />
+      </div>
+
+      <div class="text-wrapper scroll-text">
+        <p class="section-label">PORTRÉ</p>
+
+        <p>
+          A portré nem póz. Egy rövid megállás,
+          ahol valaki végre nem siet tovább.
+        </p>
+
+        <p class="section-cta">
+          <a href="./gallery.html#portrait">Többet szeretnék látni →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STREET -->
+  <section class="content-section" id="street">
+    <div class="content-block reverse">
+      <div class="image-wrapper">
+        <img src="./images/index/street1.jpg" alt="Street fotó" />
+      </div>
+
+      <div class="text-wrapper scroll-text">
+        <p class="section-label">STREET</p>
+
+        <p>
+          Az utca nem figyel. Ettől lesz őszinte.
+        </p>
+
+        <p class="section-cta">
+          <a href="./gallery.html#street">Többet szeretnék látni →</a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- NÉVJEGY -->
+  <section class="content-section" id="about">
+    <div class="content-block">
+      <div class="text-wrapper scroll-text">
+        <p class="section-label">NÉVJEGY</p>
+
+        <p>
+          Nem képeket készítek, hanem figyelmet.
+          A fotózás számomra nem technika,
+          hanem jelenlét.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- KAPCSOLAT -->
+  <section class="content-section" id="contact">
+    <div class="content-block">
+      <div class="text-wrapper scroll-text">
+        <p class="section-label">KAPCSOLAT</p>
+
+        <p><strong>Hudacsek Lőrinc</strong></p>
+        <p>
+          <a href="tel:+36307910631">+36 30 791 0631</a>
+        </p>
+        <p>7300 Komló</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body> <div class="scroll-fade-overlay"></div>
 </html>

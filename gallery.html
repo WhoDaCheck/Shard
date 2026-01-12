@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Galéria – Flashback</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="gallery-page">
+
+<header class="site-header">
+  <div class="logo">Flashback</div>
+
+  <nav class="main-nav">
+    <div class="nav-left">
+      <a href="./index.html">Kezdőlap</a>
+      <a href="./index.html#portrait">Portré</a>
+      <a href="./index.html#street">Street</a>
+      <a href="./index.html#about">Névjegy</a>
+      <a href="./index.html#contact">Kapcsolat</a>
+    </div>
+    <div class="nav-right">
+      <a href="./gallery.html" class="is-active">Galéria</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================= PORTRÉ ================= -->
+  <section class="gallery-section">
+    <h2 class="gallery-title">PORTRÉ</h2>
+
+    <div class="mosaic-grid">
+      <img src="./images/gallery/swipe-portrait/sp1.JPEG" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp2.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp3.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp4.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp5.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp6.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp7.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp8.jpeg" alt="" loading="lazy">
+    </div>
+  </section>
+
+  <!-- ================= STREET ================= -->
+  <section class="gallery-section">
+    <h2 class="gallery-title">STREET</h2>
+
+    <div class="mosaic-grid">
+      <img src="./images/gallery/swipe-street/ss1.JPEG" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss2.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss3.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss4.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss5.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss6.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss7.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss8.jpg" alt="" loading="lazy">
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= LIGHTBOX ================= -->
+
+<div class="lightbox" id="lightbox">
+  <img src="" alt="">
+</div>
+
+<script>
+/* ================= LIGHTBOX ================= */
+
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = lightbox.querySelector('img');
+
+document.querySelectorAll('.mosaic-grid img').forEach(img => {
+  img.addEventListener('click', () => {
+    lightboxImg.src = img.src;
+    lightbox.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  });
+});
+
+lightbox.addEventListener('click', () => {
+  lightbox.style.display = 'none';
+  document.body.style.overflow = '';
+});
+
+/* ========== SCROLL-ALAPÚ OLVADÁS (VIEWPORT) ========== */
+
+const images = document.querySelectorAll('.mosaic-grid img');
+
+function updateFade() {
+  const vh = window.innerHeight;
+
+  images.forEach(img => {
+    const rect = img.getBoundingClientRect();
+
+    const start = vh * 0.8; // alsó 20%
+    const end   = vh * 0.2; // felső 20%
+
+    let fade = 0;
+
+    if (rect.top < start && rect.bottom > end) {
+      const visibleTop = Math.min(start, rect.bottom);
+      const visibleBottom = Math.max(end, rect.top);
+      const visibleHeight = visibleTop - visibleBottom;
+      const maxHeight = Math.min(rect.height, start - end);
+
+      fade = Math.max(0, Math.min(1, visibleHeight / maxHeight));
+    }
+
+    img.style.setProperty('--fade', fade.toFixed(2));
+    img.style.opacity = fade.toFixed(2);
+  });
+}
+
+window.addEventListener('scroll', updateFade, { passive: true });
+window.addEventListener('resize', updateFade);
+
+updateFade();
+</script>
+
+</body> <div class="scroll-fade-overlay"></div>
+</html>
