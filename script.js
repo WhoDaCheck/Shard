@@ -104,7 +104,7 @@ function updateIndexScrollEffects() {
 }
 
 /* =================================================
-   LIGHTBOX (gallery.html)
+   LIGHTBOX – ANIMATED (GALLERY)
    ================================================= */
 
 const lightbox = document.getElementById('lightbox');
@@ -112,19 +112,23 @@ const lightbox = document.getElementById('lightbox');
 if (lightbox) {
   const lightboxImg = lightbox.querySelector('img');
 
-  document
-    .querySelectorAll('.mosaic-grid img')
-    .forEach(img => {
-      img.addEventListener('click', () => {
-        lightboxImg.src = img.src;
-        lightbox.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
-      });
+  document.querySelectorAll('.mosaic-grid img').forEach(img => {
+    img.addEventListener('click', () => {
+      lightboxImg.src = img.src;
+      lightbox.classList.add('is-visible');
+      document.body.style.overflow = 'hidden';
     });
+  });
 
-  lightbox.addEventListener('click', () => {
-    lightbox.style.display = 'none';
+  function closeLightbox() {
+    lightbox.classList.remove('is-visible');
     document.body.style.overflow = '';
+  }
+
+  lightbox.addEventListener('click', closeLightbox);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeLightbox();
   });
 }
 

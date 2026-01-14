@@ -228,28 +228,47 @@ body.gallery-page .gallery-title {
   }
 }
 
-/* ===========================
-   LIGHTBOX
-   =========================== */
-
 #lightbox {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.85);
-  display: none;
+
+  display: flex;
   align-items: center;
   justify-content: center;
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+
   z-index: 999;
 }
 
+#lightbox.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 #lightbox img {
+  display: block;
   max-width: 90vw;
   max-height: 90vh;
-  width: auto;
-  height: auto;
-  margin: 0;
+
+  transform: scale(0.92);
+  opacity: 0;
+
+  transition:
+    transform 0.45s cubic-bezier(.2,.8,.2,1),
+    opacity 0.35s ease;
+
   box-shadow: 0 40px 120px rgba(var(--bg-rgb), 0.5);
 }
+
+#lightbox.is-visible img {
+  transform: scale(1);
+  opacity: 1 !important;
+}
+
 
 /* ===========================
    SCROLL FADE OVERLAY
@@ -300,13 +319,63 @@ body:not(.gallery-page) .scroll-fade-overlay {
       rgba(var(--bg-rgb), 0) 0%
     );
 }
+
 /* ===========================
-   INTRO – középre igazított blokk,
-   balra zárt szöveg
+   INTRO – megszólítás + szöveg
    =========================== */
 
 .intro-inner {
-  max-width: 700px;
-  margin: 0 auto;      /* blokk középre */
-  text-align: left;    /* szöveg balra zárt */
+  max-width: 52ch;
+  margin: 0 auto;
+  font-size: clamp(1.05rem, 1.15vw, 1.15rem);
+  line-height: 1.75;
 }
+
+/* Üdvözöllek */
+.intro-lead {
+  text-align: center;
+  margin-bottom: 1.8em;
+}
+
+/* alatta folyó szöveg */
+.intro-inner p:not(.intro-lead) {
+  text-align: justify;
+  hyphens: auto;
+}
+
+/* mobilon ne legyen sorkizárt */
+@media (max-width: 600px) {
+  .intro-inner p:not(.intro-lead) {
+    text-align: left;
+  }
+}
+
+/* lélegzet az intro után */
+.intro-section {
+  padding-bottom: clamp(180px, 28vh, 320px);
+}
+
+
+/* ===========================
+   NÉVJEGY + KAPCSOLAT
+   középre zárt, személyes hang
+   =========================== */
+
+#about .content-block,
+#contact .content-block {
+  justify-items: center;
+  text-align: center;
+}
+
+#about .text-wrapper,
+#contact .text-wrapper {
+  max-width: 52ch;
+}
+
+/* címek maradnak középen */
+#about .section-label,
+#contact .section-label {
+  text-align: center;
+}
+
+

@@ -33,14 +33,30 @@
     <h2 class="gallery-title">PORTRÉ</h2>
 
     <div class="mosaic-grid">
-      <img src="./images/gallery/swipe-portrait/sp1.JPEG" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp2.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp3.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp4.jpeg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp5.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp6.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp7.jpeg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-portrait/sp8.jpeg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp1.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp2.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp3.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp4.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp5.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp6.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp7.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp8.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp9.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp10.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp11.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp12.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp13.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp14.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp15.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp16.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp17.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp18.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp19.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp20.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp21.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp22.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp23.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-portrait/sp24.JPEG" loading="lazy">
     </div>
   </section>
 
@@ -49,14 +65,27 @@
     <h2 class="gallery-title">STREET</h2>
 
     <div class="mosaic-grid">
-      <img src="./images/gallery/swipe-street/ss1.JPEG" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss2.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss3.jpeg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss4.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss5.jpeg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss6.jpg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss7.jpeg" alt="" loading="lazy">
-      <img src="./images/gallery/swipe-street/ss8.jpg" alt="" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss1.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss2.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss3.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss4.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss5.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss6.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss7.jpeg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss8.jpg" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss9.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss10.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss11.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss12.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss13.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss14.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss15.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss16.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss17.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss18.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss19.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss20.JPEG" loading="lazy">
+      <img src="./images/gallery/swipe-street/ss21.JPEG" loading="lazy">
     </div>
   </section>
 
@@ -69,25 +98,7 @@
 </div>
 
 <script>
-/* ================= LIGHTBOX ================= */
-
-const lightbox = document.getElementById('lightbox');
-const lightboxImg = lightbox.querySelector('img');
-
-document.querySelectorAll('.mosaic-grid img').forEach(img => {
-  img.addEventListener('click', () => {
-    lightboxImg.src = img.src;
-    lightbox.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
-  });
-});
-
-lightbox.addEventListener('click', () => {
-  lightbox.style.display = 'none';
-  document.body.style.overflow = '';
-});
-
-/* ========== SCROLL-ALAPÚ OLVADÁS (VIEWPORT) ========== */
+/* ========== SCROLL-ALAPÚ OLVADÁS ========== */
 
 const images = document.querySelectorAll('.mosaic-grid img');
 
@@ -96,9 +107,8 @@ function updateFade() {
 
   images.forEach(img => {
     const rect = img.getBoundingClientRect();
-
-    const start = vh * 0.8; // alsó 20%
-    const end   = vh * 0.2; // felső 20%
+    const start = vh * 0.8;
+    const end   = vh * 0.2;
 
     let fade = 0;
 
@@ -107,20 +117,20 @@ function updateFade() {
       const visibleBottom = Math.max(end, rect.top);
       const visibleHeight = visibleTop - visibleBottom;
       const maxHeight = Math.min(rect.height, start - end);
-
       fade = Math.max(0, Math.min(1, visibleHeight / maxHeight));
     }
 
-    img.style.setProperty('--fade', fade.toFixed(2));
     img.style.opacity = fade.toFixed(2);
   });
 }
 
 window.addEventListener('scroll', updateFade, { passive: true });
 window.addEventListener('resize', updateFade);
-
 updateFade();
 </script>
 
-</body> <div class="scroll-fade-overlay"></div>
+<script src="script.js"></script>
+
+<div class="scroll-fade-overlay"></div>
+</body>
 </html>
