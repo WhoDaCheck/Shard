@@ -132,6 +132,13 @@ main {
   }
 }
 
+#about .content-block,
+#contact .content-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* ===========================
    SECTION LABEL
    =========================== */
@@ -251,21 +258,32 @@ body.gallery-page .gallery-title {
 #lightbox.is-visible {
   opacity: 1;
   pointer-events: auto;
-}
-
-#lightbox img {
   display: block;
-  max-width: 90vw;
-  max-height: 90vh;
-
-  opacity: 0;
-  transition: opacity 0.35s ease;
-
-  box-shadow: 0 40px 120px rgba(var(--bg-rgb), 0.5);
 }
 
-#lightbox.is-visible img {
-  opacity: 1 !important;
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: none;
+  z-index: 1000;
+}
+.lightbox.is-visible {
+  display: block;
+}
+
+.lightbox img {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(0.2);
+  transition: transform 0.5s cubic-bezier(.4,2,.3,1);
+  max-width: 80vw;
+  max-height: 80vh;
+  z-index: 10;
+}
+.lightbox.is-visible img {
+  transform: translate(-50%, -50%) scale(1);
 }
 
 /* ===========================
@@ -438,19 +456,9 @@ body:not(.gallery-page) .scroll-fade-overlay {
 
 #about .content-block,
 #contact .content-block {
-  justify-items: center;
-  text-align: center;
-}
-
-#about .text-wrapper,
-#contact .text-wrapper {
-  max-width: 52ch;
-}
-
-/* címek maradnak középen */
-#about .section-label,
-#contact .section-label {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 

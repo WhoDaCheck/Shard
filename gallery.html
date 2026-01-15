@@ -135,40 +135,8 @@
 
 <div class="scroll-fade-overlay"></div>
 
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-
-  const images = document.querySelectorAll('.mosaic-grid img');
-
-  function updateFade() {
-    const vh = window.innerHeight;
-
-    images.forEach(img => {
-      const rect = img.getBoundingClientRect();
-      const start = vh * 0.8;
-      const end   = vh * 0.2;
-
-      let fade = 0;
-
-      if (rect.top < start && rect.bottom > end) {
-        const visibleTop = Math.min(start, rect.bottom);
-        const visibleBottom = Math.max(end, rect.top);
-        const visibleHeight = visibleTop - visibleBottom;
-        const maxHeight = Math.min(rect.height, start - end);
-        fade = Math.max(0, Math.min(1, visibleHeight / maxHeight));
-      }
-
-      img.style.opacity = fade.toFixed(2);
-    });
-  }
-
-  window.addEventListener('scroll', updateFade, { passive: true });
-  window.addEventListener('resize', updateFade);
-  updateFade();
-
-});
-</script>
-
-<script src="js/script.js" defer></script>
+<!-- Globális és galéria JS betöltése -->
+<script src="js/main.js"></script>
+<script src="js/gallery.js"></script>
 </body>
 </html>
