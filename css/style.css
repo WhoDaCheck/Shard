@@ -23,6 +23,41 @@ body {
   line-height: 1.6;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
+/* ===========================
+   SCROLLBAR – MINIMAL
+   =========================== */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0,0,0,0.25) transparent;
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0,0.25);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,0.35);
+}
+
 /* ===========================
    HEADER + NAV
    =========================== */
@@ -239,37 +274,20 @@ body.gallery-page .gallery-title {
    LIGHTBOX – ADVANCED
    =========================== */
 
-#lightbox {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.35s ease;
-
-  z-index: 999;
-}
-
-#lightbox.is-visible {
-  opacity: 1;
-  pointer-events: auto;
-  display: block;
-}
-
 .lightbox {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
-  display: none;
+  background: rgba(0,0,0,0.85);
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
   z-index: 1000;
 }
+
 .lightbox.is-visible {
-  display: block;
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .lightbox img {
@@ -281,9 +299,43 @@ body.gallery-page .gallery-title {
   max-width: 80vw;
   max-height: 80vh;
   z-index: 10;
+  opacity: 1;
 }
 .lightbox.is-visible img {
   transform: translate(-50%, -50%) scale(1);
+}
+
+.lightbox img.is-swapping {
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* ===========================
+   LIGHTBOX HEADER
+   =========================== */
+
+.lightbox-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.55),
+    rgba(0, 0, 0, 0)
+  );
+  z-index: 12;
+  pointer-events: none;
+}
+
+.lightbox-section {
+  font-size: 0.9rem;
+  letter-spacing: 0.35em;
+  color: rgba(255, 255, 255, 0.65);
+  text-transform: uppercase;
 }
 
 /* ===========================
@@ -294,15 +346,16 @@ body.gallery-page .gallery-title {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   cursor: pointer;
-  opacity: 0.25;
-  transition: opacity 0.25s ease;
+  opacity: 0.45;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
 
 .lightbox-nav:hover {
-  opacity: 0.6;
+  opacity: 0.8;
+  transform: translateY(-50%) scale(1.05);
 }
 
 .lightbox-prev {
@@ -318,10 +371,10 @@ body.gallery-page .gallery-title {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 16px;
-  height: 16px;
-  border-top: 1.5px solid #fff;
-  border-right: 1.5px solid #fff;
+  width: 20px;
+  height: 20px;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
   transform-origin: center;
 }
 
@@ -349,7 +402,7 @@ body.gallery-page .gallery-title {
   left: 10%;
   right: 10%;
   bottom: 32px;
-  height: 1px;
+  height: 2px;
   background: rgba(255,255,255,0.15);
   overflow: hidden;
 }
@@ -360,6 +413,25 @@ body.gallery-page .gallery-title {
   width: 0%;
   background: rgba(255,255,255,0.75);
   transition: width 0.35s ease;
+}
+
+.lightbox-progress .progress-marker {
+  position: absolute;
+  top: -10px;
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,0.45);
+}
+
+.lightbox-progress .progress-label {
+  position: absolute;
+  top: -18px;
+  left: 6px;
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 
 
@@ -460,6 +532,3 @@ body:not(.gallery-page) .scroll-fade-overlay {
   flex-direction: column;
   align-items: center;
 }
-
-
-

@@ -33,13 +33,96 @@ document.addEventListener('DOMContentLoaded', () => {
   if (lightbox) {
     const lightboxImg = lightbox.querySelector('img');
     const images = Array.from(document.querySelectorAll('.mosaic-grid img'));
+    let orderedImages = [];
     const prevBtn = lightbox.querySelector('.lightbox-prev');
     const nextBtn = lightbox.querySelector('.lightbox-next');
+    const progressTrack = lightbox.querySelector('.lightbox-progress');
     const progressBar = lightbox.querySelector('.lightbox-progress span');
+    const sectionLabel = lightbox.querySelector('.lightbox-section');
     let currentIndex = 0;
+    let isSwapping = false;
+    let sectionEnds = [];
+    let sectionInfo = [];
+
+    function updateOrderedImages() {
+      orderedImages = images
+        .map(img => ({ img, rect: img.getBoundingClientRect() }))
+        .sort((a, b) => {
+          if (a.rect.top === b.rect.top) return a.rect.left - b.rect.left;
+          return a.rect.top - b.rect.top;
+        })
+        .map(item => item.img);
+    }
+
+    function getFitSize(aspect) {
+      const maxW = window.innerWidth * 0.8;
+      const maxH = window.innerHeight * 0.8;
+      let finalW = maxW;
+      let finalH = finalW / aspect;
+      if (finalH > maxH) {
+        finalH = maxH;
+        finalW = finalH * aspect;
+      }
+      return { width: finalW, height: finalH };
+    }
+
+    function updateProgress() {
+      if (!progressBar) return;
+      const total = images.length || 1;
+      const percent = ((currentIndex + 1) / total) * 100;
+      progressBar.style.width = `${percent.toFixed(2)}%`;
+
+      if (sectionLabel && sectionInfo.length) {
+        const section = sectionInfo.find(s => currentIndex >= s.start && currentIndex <= s.end);
+        if (section) {
+          sectionLabel.textContent = section.title || '';
+        }
+      }
+    }
+
+    function buildProgressMarkers() {
+      if (!progressTrack) return;
+      progressTrack.querySelectorAll('.progress-marker').forEach(m => m.remove());
+
+      const sections = Array.from(document.querySelectorAll('.gallery-section'));
+      const counts = sections.map(section =>
+        section.querySelectorAll('.mosaic-grid img').length
+      );
+      const titles = sections.map(section => {
+        const title = section.querySelector('.gallery-title');
+        return title ? title.textContent.trim() : '';
+      });
+      const total = images.length || 1;
+      sectionEnds = [];
+      sectionInfo = [];
+
+      let running = 0;
+      counts.forEach((count, idx) => {
+        const start = running;
+        running += count;
+        const end = Math.max(start, running - 1);
+        sectionInfo.push({
+          title: titles[idx] || '',
+          start,
+          end
+        });
+        if (idx < counts.length - 1) {
+          const percent = (running / total) * 100;
+          sectionEnds.push(percent);
+          const marker = document.createElement('span');
+          marker.className = 'progress-marker';
+          marker.style.left = `${percent.toFixed(2)}%`;
+          const label = document.createElement('span');
+          label.className = 'progress-label';
+          label.textContent = titles[idx + 1] || '';
+          marker.appendChild(label);
+          progressTrack.appendChild(marker);
+        }
+      });
+    }
 
     function openZoom(index) {
-      lastImg = images[index];
+      lastImg = orderedImages[index];
       // Kattintás pillanatában olvasd ki a pozíciót és scrollt!
       const rect = lastImg.getBoundingClientRect();
       const aspect = rect.width / rect.height;
@@ -61,14 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         requestAnimationFrame(() => {
           lightboxImg.style.transition = 'left 0.5s, top 0.5s, width 0.5s, height 0.5s, transform 0.5s, opacity 0.5s';
           lightboxImg.style.opacity = '1';
-          const maxW = window.innerWidth * 0.8;
-          const maxH = window.innerHeight * 0.8;
-          let finalW = maxW;
-          let finalH = finalW / aspect;
-          if (finalH > maxH) {
-            finalH = maxH;
-            finalW = finalH * aspect;
-          }
+          const { width: finalW, height: finalH } = getFitSize(aspect);
           lightboxImg.style.left = '50%';
           lightboxImg.style.top = '50%';
           lightboxImg.style.width = finalW + 'px';
@@ -91,26 +167,74 @@ document.addEventListener('DOMContentLoaded', () => {
       lightboxImg.style.width = rect.width + 'px';
       lightboxImg.style.height = rect.height + 'px';
       lightboxImg.style.transform = 'none';
+      // A háttér fade-out induljon azonnal, szinkronban a kicsinyítéssel
+      lightbox.classList.remove('is-visible');
       setTimeout(() => {
-        lightbox.classList.remove('is-visible');
         document.body.style.overflow = '';
         lastRect = null;
         lastImg = null;
       }, 500);
     }
 
+    function swapImage(index) {
+      if (!orderedImages[index] || isSwapping) return;
+      isSwapping = true;
+      currentIndex = index;
+      updateProgress();
+
+      lightboxImg.classList.add('is-swapping');
+      lightboxImg.style.opacity = '0';
+      lightboxImg.style.transform = 'translate(-50%, -50%) scale(1.02)';
+
+      const onFadeOut = () => {
+        lightboxImg.removeEventListener('transitionend', onFadeOut);
+        lastImg = orderedImages[index];
+        lightboxImg.src = lastImg.src;
+
+        const onLoad = () => {
+          lightboxImg.removeEventListener('load', onLoad);
+          const aspect = lightboxImg.naturalWidth / lightboxImg.naturalHeight;
+          const { width: finalW, height: finalH } = getFitSize(aspect);
+          lightboxImg.style.width = finalW + 'px';
+          lightboxImg.style.height = finalH + 'px';
+
+          requestAnimationFrame(() => {
+            lightboxImg.style.opacity = '1';
+            lightboxImg.style.transform = 'translate(-50%, -50%) scale(1)';
+            const onFadeIn = () => {
+              lightboxImg.removeEventListener('transitionend', onFadeIn);
+              lightboxImg.classList.remove('is-swapping');
+              isSwapping = false;
+            };
+            lightboxImg.addEventListener('transitionend', onFadeIn, { once: true });
+          });
+        };
+
+        lightboxImg.addEventListener('load', onLoad, { once: true });
+      };
+
+      lightboxImg.addEventListener('transitionend', onFadeOut, { once: true });
+      preload(index + 1);
+      preload(index - 1);
+    }
+
     images.forEach((img, i) => {
       img.addEventListener('click', () => {
-        currentIndex = i;
-        openZoom(i);
+        const idx = orderedImages.indexOf(img);
+        currentIndex = idx === -1 ? i : idx;
+        openZoom(currentIndex);
       });
     });
 
     // Lapozás: showImage függvény
     function showImage(index) {
-      if (!images[index]) return;
-      currentIndex = index;
-      openZoom(index);
+      if (!orderedImages[index]) return;
+      if (lightbox.classList.contains('is-visible')) {
+        swapImage(index);
+      } else {
+        currentIndex = index;
+        openZoom(index);
+      }
     }
 
     // Nyilak kattintásra lapozás
@@ -139,10 +263,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Eredeti lightbox navigáció, progress, preload ---
     function preload(index) {
-      if (images[index]) {
+      if (orderedImages[index]) {
         const img = new Image();
-        img.src = images[index].src;
+        img.src = orderedImages[index].src;
       }
     }
+
+    updateOrderedImages();
+    buildProgressMarkers();
+    updateProgress();
+    window.addEventListener('resize', () => {
+      updateOrderedImages();
+      buildProgressMarkers();
+    });
   }
 });
