@@ -75,3 +75,28 @@ window.addEventListener(
 );
 window.addEventListener('resize', updateIndexScrollEffects);
 updateIndexScrollEffects();
+
+// Index oldal: galéria első képeinek előtöltése a gyorsabb élményért
+function preloadGalleryImages() {
+  if (document.body.classList.contains('gallery-page')) return;
+
+  const imagesToPreload = [];
+  for (let i = 1; i <= 10; i++) {
+    imagesToPreload.push(`./images/gallery/swipe-portrait/sp${i}.jpg`);
+  }
+
+  const run = () => {
+    imagesToPreload.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+  };
+
+  if ('requestIdleCallback' in window) {
+    requestIdleCallback(run);
+  } else {
+    setTimeout(run, 0);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', preloadGalleryImages);

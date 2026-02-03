@@ -43,37 +43,38 @@ document.addEventListener('DOMContentLoaded', () => {
       // Kattintás pillanatában olvasd ki a pozíciót és scrollt!
       const rect = lastImg.getBoundingClientRect();
       const aspect = rect.width / rect.height;
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
       lastRect = rect; // csak a méret miatt
       lightboxImg.src = lastImg.src;
       lightboxImg.style.position = 'fixed';
       lightboxImg.style.transition = 'none';
       lightboxImg.style.opacity = '0';
-      lightboxImg.style.left = (rect.left + scrollX) + 'px';
-      lightboxImg.style.top = (rect.top + scrollY) + 'px';
+      // fixed pozíciónál viewporthoz viszonyítunk, nem a dokumentumhoz
+      lightboxImg.style.left = rect.left + 'px';
+      lightboxImg.style.top = rect.top + 'px';
       lightboxImg.style.width = rect.width + 'px';
       lightboxImg.style.height = rect.height + 'px';
       lightboxImg.style.transform = 'none';
       lightbox.classList.add('is-visible');
       document.body.style.overflow = 'hidden';
-      // Egy animációs frame múlva indítjuk az animációt
+      // Két frame után indítjuk, hogy biztosan érvényesüljön a kezdeti állapot
       requestAnimationFrame(() => {
-        lightboxImg.style.transition = 'left 0.5s, top 0.5s, width 0.5s, height 0.5s, transform 0.5s, opacity 0.5s';
-        lightboxImg.style.opacity = '1';
-        const maxW = window.innerWidth * 0.8;
-        const maxH = window.innerHeight * 0.8;
-        let finalW = maxW;
-        let finalH = finalW / aspect;
-        if (finalH > maxH) {
-          finalH = maxH;
-          finalW = finalH * aspect;
-        }
-        lightboxImg.style.left = '50%';
-        lightboxImg.style.top = '50%';
-        lightboxImg.style.width = finalW + 'px';
-        lightboxImg.style.height = finalH + 'px';
-        lightboxImg.style.transform = 'translate(-50%, -50%)';
+        requestAnimationFrame(() => {
+          lightboxImg.style.transition = 'left 0.5s, top 0.5s, width 0.5s, height 0.5s, transform 0.5s, opacity 0.5s';
+          lightboxImg.style.opacity = '1';
+          const maxW = window.innerWidth * 0.8;
+          const maxH = window.innerHeight * 0.8;
+          let finalW = maxW;
+          let finalH = finalW / aspect;
+          if (finalH > maxH) {
+            finalH = maxH;
+            finalW = finalH * aspect;
+          }
+          lightboxImg.style.left = '50%';
+          lightboxImg.style.top = '50%';
+          lightboxImg.style.width = finalW + 'px';
+          lightboxImg.style.height = finalH + 'px';
+          lightboxImg.style.transform = 'translate(-50%, -50%)';
+        });
       });
       updateProgress();
       preload(index + 1);
@@ -83,11 +84,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function closeZoom() {
       if (!lastImg) return;
       const rect = lastImg.getBoundingClientRect();
-      const scrollX = window.scrollX || window.pageXOffset;
-      const scrollY = window.scrollY || window.pageYOffset;
       lightboxImg.style.transition = 'left 0.5s, top 0.5s, width 0.5s, height 0.5s, transform 0.5s';
-      lightboxImg.style.left = (rect.left + scrollX) + 'px';
-      lightboxImg.style.top = (rect.top + scrollY) + 'px';
+      // fixed pozíciónál viewport koordinátát használunk
+      lightboxImg.style.left = rect.left + 'px';
+      lightboxImg.style.top = rect.top + 'px';
       lightboxImg.style.width = rect.width + 'px';
       lightboxImg.style.height = rect.height + 'px';
       lightboxImg.style.transform = 'none';
