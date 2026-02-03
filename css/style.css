@@ -183,6 +183,21 @@ main {
   align-items: center;
 }
 
+#about .about-text {
+  max-width: 56ch;
+  font-size: clamp(1.05rem, 1.2vw, 1.18rem);
+  line-height: 1.85;
+  text-align: center;
+  color: var(--text);
+  margin-top: 8px;
+}
+
+@media (max-width: 600px) {
+  #about .about-text {
+    text-align: left;
+  }
+}
+
 /* ===========================
    SECTION LABEL
    =========================== */
