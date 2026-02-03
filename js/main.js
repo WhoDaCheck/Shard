@@ -68,9 +68,19 @@ function updateIndexScrollEffects() {
   }
 }
 
+let indexScrollScheduled = false;
+function scheduleIndexScrollEffects() {
+  if (indexScrollScheduled) return;
+  indexScrollScheduled = true;
+  requestAnimationFrame(() => {
+    indexScrollScheduled = false;
+    updateIndexScrollEffects();
+  });
+}
+
 window.addEventListener(
   'scroll',
-  () => requestAnimationFrame(updateIndexScrollEffects),
+  scheduleIndexScrollEffects,
   { passive: true }
 );
 window.addEventListener('resize', updateIndexScrollEffects);

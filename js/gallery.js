@@ -3,12 +3,19 @@
 document.addEventListener('DOMContentLoaded', () => {
   // Fade effektek a mozaik képekre
   const images = document.querySelectorAll('.mosaic-grid img');
-  function updateFade() {
+  function updateFadeFallback() {
     const vh = window.innerHeight;
-    images.forEach(img => {
+    const start = vh * 0.8;
+    const end = vh * 0.2;
+
+    for (let i = 0; i < images.length; i++) {
+      const img = images[i];
       const rect = img.getBoundingClientRect();
-      const start = vh * 0.8;
-      const end   = vh * 0.2;
+      if (rect.bottom < 0 || rect.top > vh) {
+        if (img.style.opacity !== '0') img.style.opacity = '0';
+        continue;
+      }
+
       let fade = 0;
       if (rect.top < start && rect.bottom > end) {
         const visibleTop = Math.min(start, rect.bottom);
@@ -17,12 +24,50 @@ document.addEventListener('DOMContentLoaded', () => {
         const maxHeight = Math.min(rect.height, start - end);
         fade = Math.max(0, Math.min(1, visibleHeight / maxHeight));
       }
-      img.style.opacity = fade.toFixed(2);
-    });
+      const nextOpacity = fade.toFixed(2);
+      if (img.style.opacity !== nextOpacity) {
+        img.style.opacity = nextOpacity;
+      }
+    }
   }
-  window.addEventListener('scroll', updateFade, { passive: true });
-  window.addEventListener('resize', updateFade);
-  updateFade();
+
+  function setupFadeObserver() {
+    if (!('IntersectionObserver' in window)) {
+      return false;
+    }
+
+    const thresholds = [];
+    for (let i = 0; i <= 10; i++) thresholds.push(i / 10);
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const ratio = entry.intersectionRatio;
+        const nextOpacity = ratio.toFixed(2);
+        if (entry.target.style.opacity !== nextOpacity) {
+          entry.target.style.opacity = nextOpacity;
+        }
+      });
+    }, { threshold: thresholds });
+
+    images.forEach(img => observer.observe(img));
+    return true;
+  }
+
+  if (!setupFadeObserver()) {
+    let fadeScheduled = false;
+    function scheduleFade() {
+      if (fadeScheduled) return;
+      fadeScheduled = true;
+      requestAnimationFrame(() => {
+        fadeScheduled = false;
+        updateFadeFallback();
+      });
+    }
+
+    window.addEventListener('scroll', scheduleFade, { passive: true });
+    window.addEventListener('resize', updateFadeFallback);
+    updateFadeFallback();
+  }
 
   // Lightbox logika
   // --- Lightbox zoom animáció ---
@@ -272,9 +317,25 @@ document.addEventListener('DOMContentLoaded', () => {
     updateOrderedImages();
     buildProgressMarkers();
     updateProgress();
+    function updateStickyStates() {
+      const titles = document.querySelectorAll('.gallery-title');
+      titles.forEach(title => {
+        const rect = title.getBoundingClientRect();
+        const headerHeight = parseFloat(
+          getComputedStyle(document.documentElement)
+            .getPropertyValue('--header-height')
+        );
+        const stuck = rect.top <= headerHeight + 0.5;
+        title.classList.toggle('is-stuck', stuck);
+      });
+    }
+
+    window.addEventListener('scroll', () => requestAnimationFrame(updateStickyStates), { passive: true });
     window.addEventListener('resize', () => {
       updateOrderedImages();
       buildProgressMarkers();
+      updateStickyStates();
     });
+    updateStickyStates();
   }
 });
