@@ -133,6 +133,12 @@ html {
 
 main {
   padding-top: var(--header-height);
+  transition: opacity 0.35s ease;
+}
+
+main.is-fading {
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* ===========================

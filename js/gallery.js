@@ -1,8 +1,15 @@
 // Galéria oldalhoz tartozó logika: lightbox, mozaik fade, progress bar
 
-document.addEventListener('DOMContentLoaded', () => {
+let galleryCleanup = null;
+
+function initGalleryPage() {
+  if (!document.body.classList.contains('gallery-page')) return;
+  if (galleryCleanup) galleryCleanup();
   // Fade effektek a mozaik képekre
   const images = document.querySelectorAll('.mosaic-grid img');
+  let fadeObserver = null;
+  let fadeScrollHandler = null;
+  let fadeResizeHandler = null;
   function updateFadeFallback() {
     const vh = window.innerHeight;
     const start = vh * 0.8;
@@ -39,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const thresholds = [];
     for (let i = 0; i <= 10; i++) thresholds.push(i / 10);
 
-    const observer = new IntersectionObserver((entries) => {
+    fadeObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const ratio = entry.intersectionRatio;
         const nextOpacity = ratio.toFixed(2);
@@ -49,7 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, { threshold: thresholds });
 
-    images.forEach(img => observer.observe(img));
+    images.forEach(img => fadeObserver.observe(img));
     return true;
   }
 
@@ -64,8 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    window.addEventListener('scroll', scheduleFade, { passive: true });
-    window.addEventListener('resize', updateFadeFallback);
+    fadeScrollHandler = scheduleFade;
+    fadeResizeHandler = updateFadeFallback;
+    window.addEventListener('scroll', fadeScrollHandler, { passive: true });
+    window.addEventListener('resize', fadeResizeHandler);
     updateFadeFallback();
   }
 
@@ -74,6 +83,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let lastRect = null;
   let lastImg = null;
 
+  let stickyScrollHandler = null;
+  let stickyResizeHandler = null;
+  let keydownHandler = null;
   const lightbox = document.getElementById('lightbox');
   if (lightbox) {
     const lightboxImg = lightbox.querySelector('img');
@@ -299,12 +311,13 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    document.addEventListener('keydown', e => {
+    keydownHandler = e => {
       if (!lightbox.classList.contains('is-visible')) return;
       if (e.key === 'Escape') closeZoom();
       if (e.key === 'ArrowRight') showImage((currentIndex + 1) % images.length);
       if (e.key === 'ArrowLeft') showImage((currentIndex - 1 + images.length) % images.length);
-    });
+    };
+    document.addEventListener('keydown', keydownHandler);
 
     // --- Eredeti lightbox navigáció, progress, preload ---
     function preload(index) {
@@ -330,12 +343,25 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    window.addEventListener('scroll', () => requestAnimationFrame(updateStickyStates), { passive: true });
-    window.addEventListener('resize', () => {
+    stickyScrollHandler = () => requestAnimationFrame(updateStickyStates);
+    stickyResizeHandler = () => {
       updateOrderedImages();
       buildProgressMarkers();
       updateStickyStates();
-    });
+    };
+    window.addEventListener('scroll', stickyScrollHandler, { passive: true });
+    window.addEventListener('resize', stickyResizeHandler);
     updateStickyStates();
   }
-});
+  galleryCleanup = () => {
+    if (fadeObserver) fadeObserver.disconnect();
+    if (fadeScrollHandler) window.removeEventListener('scroll', fadeScrollHandler);
+    if (fadeResizeHandler) window.removeEventListener('resize', fadeResizeHandler);
+    if (stickyScrollHandler) window.removeEventListener('scroll', stickyScrollHandler);
+    if (stickyResizeHandler) window.removeEventListener('resize', stickyResizeHandler);
+    if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
+  };
+}
+
+document.addEventListener('DOMContentLoaded', initGalleryPage);
+window.initGalleryPage = initGalleryPage;
