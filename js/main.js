@@ -1,5 +1,46 @@
 // Globális logika: navigáció, scroll, header, index oldali effektek
 
+const MOBILE_MENU_BREAKPOINT = 900;
+
+function closeMobileMenu() {
+  const header = document.querySelector('.site-header');
+  const toggle = document.querySelector('.nav-toggle');
+  if (!header || !toggle) return;
+  header.classList.remove('is-menu-open');
+  document.body.classList.remove('menu-open');
+  toggle.setAttribute('aria-expanded', 'false');
+  toggle.setAttribute('aria-label', 'Menü megnyitása');
+}
+
+function setupMobileMenu() {
+  const header = document.querySelector('.site-header');
+  const toggle = document.querySelector('.nav-toggle');
+  const menu = document.querySelector('.main-nav');
+  if (!header || !toggle || !menu) return;
+
+  toggle.addEventListener('click', () => {
+    const willOpen = !header.classList.contains('is-menu-open');
+    header.classList.toggle('is-menu-open', willOpen);
+    document.body.classList.toggle('menu-open', willOpen);
+    toggle.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    toggle.setAttribute('aria-label', willOpen ? 'Menü bezárása' : 'Menü megnyitása');
+  });
+
+  menu.addEventListener('click', e => {
+    if (e.target.closest('a')) closeMobileMenu();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMobileMenu();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > MOBILE_MENU_BREAKPOINT) {
+      closeMobileMenu();
+    }
+  });
+}
+
 function updateIndexScrollEffects() {
   if (document.body.classList.contains('gallery-page')) return;
 
@@ -84,6 +125,7 @@ window.addEventListener(
   { passive: true }
 );
 window.addEventListener('resize', updateIndexScrollEffects);
+setupMobileMenu();
 updateIndexScrollEffects();
 
 // Index oldal: galéria első képeinek előtöltése a gyorsabb élményért
@@ -166,6 +208,7 @@ function swapOptionalElement(selector, newDoc) {
 async function navigateTo(url, { push = true } = {}) {
   if (isNavigating) return;
   isNavigating = true;
+  closeMobileMenu();
 
   const main = document.querySelector('main');
   if (!main) {
@@ -243,6 +286,7 @@ document.addEventListener('click', e => {
   if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
 
   const url = new URL(link.href, window.location.href);
+  if (link.closest('.main-nav')) closeMobileMenu();
   if (!isSpaLink(link)) return;
 
   if (url.pathname === window.location.pathname && url.hash) return;

@@ -100,6 +100,12 @@ function initGalleryPage() {
     let isSwapping = false;
     let sectionEnds = [];
     let sectionInfo = [];
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchDeltaX = 0;
+    let touchDeltaY = 0;
+    let trackingTouch = false;
+    let suppressImageTapClose = false;
 
     function updateOrderedImages() {
       orderedImages = images
@@ -306,6 +312,10 @@ function initGalleryPage() {
 
     // Lightbox overlay kattintás: csak overlay vagy kép zárja be
     lightbox.addEventListener('click', function(e) {
+      if (e.target === lightboxImg && suppressImageTapClose) {
+        suppressImageTapClose = false;
+        return;
+      }
       if (e.target === lightbox || e.target === lightboxImg) {
         closeZoom();
       }
@@ -318,6 +328,50 @@ function initGalleryPage() {
       if (e.key === 'ArrowLeft') showImage((currentIndex - 1 + images.length) % images.length);
     };
     document.addEventListener('keydown', keydownHandler);
+
+    function onTouchStart(e) {
+      if (!lightbox.classList.contains('is-visible')) return;
+      if (!e.touches || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchDeltaX = 0;
+      touchDeltaY = 0;
+      trackingTouch = true;
+    }
+
+    function onTouchMove(e) {
+      if (!trackingTouch || !e.touches || e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchDeltaX = touch.clientX - touchStartX;
+      touchDeltaY = touch.clientY - touchStartY;
+    }
+
+    function onTouchEnd() {
+      if (!trackingTouch) return;
+      trackingTouch = false;
+      const absX = Math.abs(touchDeltaX);
+      const absY = Math.abs(touchDeltaY);
+      if (absX < 48 || absX <= absY) return;
+
+      suppressImageTapClose = true;
+      if (touchDeltaX < 0) {
+        showImage((currentIndex + 1) % images.length);
+      } else {
+        showImage((currentIndex - 1 + images.length) % images.length);
+      }
+    }
+
+    lightboxImg.addEventListener('touchstart', onTouchStart, { passive: true });
+    lightboxImg.addEventListener('touchmove', onTouchMove, { passive: true });
+    lightboxImg.addEventListener('touchend', onTouchEnd, { passive: true });
+    lightboxImg.addEventListener(
+      'touchcancel',
+      () => {
+        trackingTouch = false;
+      },
+      { passive: true }
+    );
 
     // --- Eredeti lightbox navigáció, progress, preload ---
     function preload(index) {
