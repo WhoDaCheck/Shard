@@ -71,9 +71,9 @@ function updateIndexScrollEffects() {
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
     const progress = Math.min(distance / maxDistance, 1);
-    const scale = 0.94 + (1 - progress) * 0.06;
-    img.style.opacity = '1';
-    img.style.transform = `scale(${scale.toFixed(3)})`;
+    const opacity = 0.28 + (1 - progress) * 0.72;
+    img.style.opacity = opacity.toFixed(3);
+    img.style.transform = 'none';
   });
 
   indexTexts.forEach(text => {
@@ -82,7 +82,8 @@ function updateIndexScrollEffects() {
     const distance = Math.abs(center - viewportCenter);
     const progress = Math.min(distance / maxDistance, 1);
     const scale = 0.96 + (1 - progress) * 0.04;
-    text.style.opacity = '1';
+    const opacity = 0.2 + (1 - progress) * 0.8;
+    text.style.opacity = opacity.toFixed(3);
     text.style.transform = `scale(${scale.toFixed(3)})`;
   });
 
@@ -151,10 +152,110 @@ function applyAlternatingContentLayout() {
   });
 }
 
+let sectionStepScrollInitialized = false;
+function setupSectionStepScroll() {
+  if (document.body.classList.contains('gallery-page')) return;
+  if (sectionStepScrollInitialized) return;
+
+  const sections = Array.from(document.querySelectorAll('main > section'));
+  if (sections.length < 2) return;
+  sectionStepScrollInitialized = true;
+
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const SCROLL_DURATION_MS = prefersReducedMotion ? 1320 : 1320;
+  const LOCK_MS = SCROLL_DURATION_MS + 80;
+  const MIN_DELTA = 4;
+  let isLocked = false;
+  let animationFrameId = 0;
+
+  const clampScrollTop = value => {
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    return Math.min(Math.max(value, 0), maxScroll);
+  };
+
+  const getSectionCenter = section => {
+    const rect = section.getBoundingClientRect();
+    return window.scrollY + rect.top + rect.height / 2;
+  };
+
+  const getClosestSectionIndex = () => {
+    const viewportCenter = getViewportCenter();
+    let closestIndex = 0;
+    let closestDistance = Infinity;
+
+    sections.forEach((section, index) => {
+      const distance = Math.abs(getSectionCenter(section) - viewportCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+
+    return closestIndex;
+  };
+
+  const getViewportCenter = () => window.scrollY + window.innerHeight / 2;
+
+  const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  const animateScrollTo = targetTop => {
+    const startTop = window.scrollY;
+    const delta = targetTop - startTop;
+    if (Math.abs(delta) < 1) return;
+
+    const startTime = performance.now();
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+
+    const step = now => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / SCROLL_DURATION_MS, 1);
+      const eased = easeInOutCubic(progress);
+      window.scrollTo(0, startTop + delta * eased);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      } else {
+        animationFrameId = 0;
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+  };
+
+  const scrollSectionToCenter = section => {
+    const targetTop = clampScrollTop(getSectionCenter(section) - window.innerHeight / 2);
+    animateScrollTo(targetTop);
+  };
+
+  window.addEventListener(
+    'wheel',
+    e => {
+      if (document.body.classList.contains('menu-open')) return;
+      if (isLocked || e.ctrlKey || Math.abs(e.deltaY) < MIN_DELTA) return;
+
+      const currentIndex = getClosestSectionIndex();
+      const direction = e.deltaY > 0 ? 1 : -1;
+      const targetIndex = Math.min(Math.max(currentIndex + direction, 0), sections.length - 1);
+
+      if (targetIndex === currentIndex) return;
+
+      e.preventDefault();
+      isLocked = true;
+      scrollSectionToCenter(sections[targetIndex]);
+
+      window.setTimeout(() => {
+        isLocked = false;
+      }, LOCK_MS);
+    },
+    { passive: false }
+  );
+}
+
 window.addEventListener('scroll', scheduleIndexScrollEffects, { passive: true });
 window.addEventListener('resize', updateIndexScrollEffects);
 document.addEventListener('DOMContentLoaded', preloadGalleryImages);
 document.addEventListener('DOMContentLoaded', applyAlternatingContentLayout);
+document.addEventListener('DOMContentLoaded', setupSectionStepScroll);
 
 document.addEventListener('click', e => {
   const link = e.target.closest('a');
@@ -170,3 +271,4 @@ window.addEventListener('pageshow', () => {
 setupMobileMenu();
 applyAlternatingContentLayout();
 updateIndexScrollEffects();
+setupSectionStepScroll();

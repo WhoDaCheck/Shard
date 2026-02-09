@@ -10,6 +10,7 @@
 
 :root {
   --header-height: 64px;
+  --footer-height: 56px;
   --chrome-alpha: 0.78;
   --bg: #f7f7f7;
   --bg-rgb: 247, 247, 247;
@@ -36,6 +37,18 @@ body {
 html {
   scrollbar-gutter: stable;
   scroll-behavior: smooth;
+}
+
+/* Index oldalon a görgetés a szekciókhoz "pattan". */
+body:not(.gallery-page) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: calc(var(--header-height) / 2);
+  scroll-padding-bottom: calc(var(--footer-height) / 2);
+}
+
+body:not(.gallery-page) main > section {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
 }
 
 /* ===========================
@@ -89,6 +102,18 @@ html {
   box-shadow:
     0 1px 0 rgba(180, 180, 180, 0.25),
     0 25px 45px rgba(0, 0, 0, 0.03);
+}
+
+/* A jobb oldali scrollbar vizualisan a header alatt induljon. */
+.site-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  background: rgba(var(--bg-rgb), var(--chrome-alpha));
+  pointer-events: none;
 }
 
 .logo {
@@ -258,6 +283,18 @@ body {
   padding: 120px 24px;
 }
 
+body:not(.gallery-page) .intro-section,
+body:not(.gallery-page) .content-section {
+  min-height: calc(100dvh - var(--header-height) - var(--footer-height));
+  display: flex;
+  align-items: center;
+}
+
+body:not(.gallery-page) .intro-section + .content-section,
+body:not(.gallery-page) .content-section + .content-section {
+  margin-top: clamp(56px, 10vh, 140px);
+}
+
 .content-block {
   max-width: 1200px;
   margin: 0 auto;
@@ -269,6 +306,10 @@ body {
 @media (min-width: 900px) {
   .content-block {
     grid-template-columns: 1.2fr 0.8fr;
+  }
+
+  #street .content-block {
+    grid-template-columns: 0.85fr 1.15fr;
   }
 
   .content-block.reverse .image-wrapper {
@@ -344,6 +385,15 @@ body:not(.gallery-page) .image-wrapper img {
   box-shadow:
     0 0 38px rgba(0,0,0,0.16),
     0 0 14px rgba(0,0,0,0.09);
+}
+
+#street .image-wrapper {
+  width: min(100%, clamp(460px, 56vw, 940px));
+}
+
+#street .image-wrapper img {
+  width: 100%;
+  max-width: none;
 }
 
 /* =================================================
@@ -720,7 +770,7 @@ body:not(.gallery-page) .scroll-fade-overlay {
 
 /* lélegzet az intro után */
 .intro-section {
-  padding-bottom: clamp(180px, 28vh, 320px);
+  padding-bottom: 0;
 }
 
 
@@ -739,6 +789,7 @@ body:not(.gallery-page) .scroll-fade-overlay {
 @media (max-width: 900px) {
   :root {
     --header-height: 60px;
+    --footer-height: 88px;
   }
 
   body.menu-open {
@@ -865,6 +916,7 @@ body:not(.gallery-page) .scroll-fade-overlay {
 @media (max-width: 600px) {
   :root {
     --header-height: 56px;
+    --footer-height: 0px;
   }
 
   body {
