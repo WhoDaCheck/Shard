@@ -1,12 +1,17 @@
 // Galéria oldalhoz tartozó logika: lightbox, mozaik fade, progress bar
 
 let galleryCleanup = null;
+const GALLERY_MIN_SCROLL_SCALE = 0.8;
 
 function initGalleryPage() {
   if (!document.body.classList.contains('gallery-page')) return;
   if (galleryCleanup) galleryCleanup();
   // Fade effektek a mozaik képekre
   const images = document.querySelectorAll('.mosaic-grid img');
+  images.forEach(img => {
+    img.style.opacity = '1';
+    img.style.setProperty('--scroll-scale', '1');
+  });
   let fadeObserver = null;
   let fadeScrollHandler = null;
   let fadeResizeHandler = null;
@@ -19,21 +24,26 @@ function initGalleryPage() {
       const img = images[i];
       const rect = img.getBoundingClientRect();
       if (rect.bottom < 0 || rect.top > vh) {
-        if (img.style.opacity !== '0') img.style.opacity = '0';
+        const minScale = GALLERY_MIN_SCROLL_SCALE.toFixed(2);
+        if (img.style.getPropertyValue('--scroll-scale') !== minScale) {
+          img.style.setProperty('--scroll-scale', minScale);
+        }
         continue;
       }
 
-      let fade = 0;
+      let visibility = 0;
       if (rect.top < start && rect.bottom > end) {
         const visibleTop = Math.min(start, rect.bottom);
         const visibleBottom = Math.max(end, rect.top);
         const visibleHeight = visibleTop - visibleBottom;
         const maxHeight = Math.min(rect.height, start - end);
-        fade = Math.max(0, Math.min(1, visibleHeight / maxHeight));
+        visibility = Math.max(0, Math.min(1, visibleHeight / maxHeight));
       }
-      const nextOpacity = fade.toFixed(2);
-      if (img.style.opacity !== nextOpacity) {
-        img.style.opacity = nextOpacity;
+      const nextScale = (
+        GALLERY_MIN_SCROLL_SCALE + visibility * (1 - GALLERY_MIN_SCROLL_SCALE)
+      ).toFixed(3);
+      if (img.style.getPropertyValue('--scroll-scale') !== nextScale) {
+        img.style.setProperty('--scroll-scale', nextScale);
       }
     }
   }
@@ -49,9 +59,11 @@ function initGalleryPage() {
     fadeObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         const ratio = entry.intersectionRatio;
-        const nextOpacity = ratio.toFixed(2);
-        if (entry.target.style.opacity !== nextOpacity) {
-          entry.target.style.opacity = nextOpacity;
+        const nextScale = (
+          GALLERY_MIN_SCROLL_SCALE + ratio * (1 - GALLERY_MIN_SCROLL_SCALE)
+        ).toFixed(3);
+        if (entry.target.style.getPropertyValue('--scroll-scale') !== nextScale) {
+          entry.target.style.setProperty('--scroll-scale', nextScale);
         }
       });
     }, { threshold: thresholds });
