@@ -231,7 +231,14 @@ function setupSectionStepScroll() {
     'wheel',
     e => {
       if (document.body.classList.contains('menu-open')) return;
-      if (isLocked || e.ctrlKey || Math.abs(e.deltaY) < MIN_DELTA) return;
+      if (e.ctrlKey) return;
+
+      const delta = Math.abs(e.deltaY);
+      if (isLocked) {
+        if (delta >= MIN_DELTA) e.preventDefault();
+        return;
+      }
+      if (delta < MIN_DELTA) return;
 
       const currentIndex = getClosestSectionIndex();
       const direction = e.deltaY > 0 ? 1 : -1;

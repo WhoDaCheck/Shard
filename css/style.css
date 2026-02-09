@@ -213,6 +213,18 @@ main.is-fading {
     0 -25px 45px rgba(0, 0, 0, 0.03);
 }
 
+/* A jobb oldali scrollbar vizualisan a footer felett vegzodjon. */
+.site-footer::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 12px;
+  height: 100%;
+  background: rgba(var(--bg-rgb), var(--chrome-alpha));
+  pointer-events: none;
+}
+
 .footer-inner {
   width: min(1320px, calc(100% - 48px));
   margin: 0 auto;
