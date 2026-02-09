@@ -239,15 +239,29 @@ function initGalleryPage() {
       }, 500);
     }
 
-    function swapImage(index) {
+    function swapImage(index, direction = 0) {
       if (!orderedImages[index] || isSwapping) return;
       isSwapping = true;
+      const previousIndex = currentIndex;
       currentIndex = index;
       updateProgress();
 
+      if (direction === 0) {
+        if (index === (previousIndex + 1) % images.length) direction = 1;
+        else if (index === (previousIndex - 1 + images.length) % images.length) direction = -1;
+        else direction = index >= previousIndex ? 1 : -1;
+      }
+
+      const useMobileSlide = window.innerWidth <= 900;
       lightboxImg.classList.add('is-swapping');
       lightboxImg.style.opacity = '0';
-      lightboxImg.style.transform = 'translate(-50%, -50%) scale(1.02)';
+      if (useMobileSlide) {
+        const travel = Math.min(window.innerWidth * 0.22, 170);
+        const outOffset = direction >= 0 ? -travel : travel;
+        lightboxImg.style.transform = `translate(calc(-50% + ${outOffset}px), -50%)`;
+      } else {
+        lightboxImg.style.transform = 'translate(-50%, -50%) scale(1.02)';
+      }
 
       const onFadeOut = () => {
         lightboxImg.removeEventListener('transitionend', onFadeOut);
@@ -262,8 +276,22 @@ function initGalleryPage() {
           lightboxImg.style.height = finalH + 'px';
 
           requestAnimationFrame(() => {
-            lightboxImg.style.opacity = '1';
-            lightboxImg.style.transform = 'translate(-50%, -50%) scale(1)';
+            if (useMobileSlide) {
+              const travel = Math.min(window.innerWidth * 0.22, 170);
+              const inOffset = direction >= 0 ? travel : -travel;
+              lightboxImg.style.transition = 'none';
+              lightboxImg.style.opacity = '0';
+              lightboxImg.style.transform = `translate(calc(-50% + ${inOffset}px), -50%)`;
+
+              requestAnimationFrame(() => {
+                lightboxImg.style.transition = 'opacity 0.35s ease, transform 0.35s ease';
+                lightboxImg.style.opacity = '1';
+                lightboxImg.style.transform = 'translate(-50%, -50%)';
+              });
+            } else {
+              lightboxImg.style.opacity = '1';
+              lightboxImg.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
             const onFadeIn = () => {
               lightboxImg.removeEventListener('transitionend', onFadeIn);
               lightboxImg.classList.remove('is-swapping');
@@ -290,10 +318,10 @@ function initGalleryPage() {
     });
 
     // Lapozás: showImage függvény
-    function showImage(index) {
+    function showImage(index, direction = 0) {
       if (!orderedImages[index]) return;
       if (lightbox.classList.contains('is-visible')) {
-        swapImage(index);
+        swapImage(index, direction);
       } else {
         currentIndex = index;
         openZoom(index);
@@ -303,11 +331,11 @@ function initGalleryPage() {
     // Nyilak kattintásra lapozás
     prevBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      showImage((currentIndex - 1 + images.length) % images.length);
+      showImage((currentIndex - 1 + images.length) % images.length, -1);
     });
     nextBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      showImage((currentIndex + 1) % images.length);
+      showImage((currentIndex + 1) % images.length, 1);
     });
 
     // Lightbox overlay kattintás: csak overlay vagy kép zárja be
@@ -324,8 +352,8 @@ function initGalleryPage() {
     keydownHandler = e => {
       if (!lightbox.classList.contains('is-visible')) return;
       if (e.key === 'Escape') closeZoom();
-      if (e.key === 'ArrowRight') showImage((currentIndex + 1) % images.length);
-      if (e.key === 'ArrowLeft') showImage((currentIndex - 1 + images.length) % images.length);
+      if (e.key === 'ArrowRight') showImage((currentIndex + 1) % images.length, 1);
+      if (e.key === 'ArrowLeft') showImage((currentIndex - 1 + images.length) % images.length, -1);
     };
     document.addEventListener('keydown', keydownHandler);
 
@@ -356,9 +384,9 @@ function initGalleryPage() {
 
       suppressImageTapClose = true;
       if (touchDeltaX < 0) {
-        showImage((currentIndex + 1) % images.length);
+        showImage((currentIndex + 1) % images.length, 1);
       } else {
-        showImage((currentIndex - 1 + images.length) % images.length);
+        showImage((currentIndex - 1 + images.length) % images.length, -1);
       }
     }
 

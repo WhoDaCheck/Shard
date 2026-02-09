@@ -684,7 +684,7 @@ body:not(.gallery-page) .scroll-fade-overlay {
     top: var(--header-height);
     left: 0;
     right: 0;
-    bottom: 0;
+    max-height: calc(100dvh - var(--header-height));
     padding: 20px 16px 32px;
     background: rgba(var(--bg-rgb), 0.98);
     backdrop-filter: blur(8px);
@@ -714,9 +714,11 @@ body:not(.gallery-page) .scroll-fade-overlay {
   }
 
   .main-nav a {
+    display: block;
+    padding: 8px 0;
     font-size: 0.95rem;
     letter-spacing: 0.11em;
-    width: max-content;
+    width: 100%;
   }
 
   .nav-right {
