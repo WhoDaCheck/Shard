@@ -193,11 +193,15 @@ function animateScrollToTop(targetTop, durationMs = 920, onDone = null) {
   anchorScrollAnimationFrame = requestAnimationFrame(step);
 }
 
-function getCenteredSectionScrollTop(section) {
+function getCenteredSectionScrollTop(section, sections = []) {
+  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const sectionIndex = sections.indexOf(section);
+
+  if (sectionIndex === 0) return 0;
+
   const rect = section.getBoundingClientRect();
   const sectionCenter = window.scrollY + rect.top + rect.height / 2;
   const desiredTop = sectionCenter - window.innerHeight / 2;
-  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   return Math.min(Math.max(desiredTop, 0), maxScroll);
 }
 
@@ -216,7 +220,8 @@ function setupSmoothInPageAnchors() {
     e.preventDefault();
     closeMobileMenu();
 
-    animateScrollToTop(getCenteredSectionScrollTop(target));
+    const sections = Array.from(document.querySelectorAll('main > section'));
+    animateScrollToTop(getCenteredSectionScrollTop(target, sections));
     history.pushState(null, '', url.hash);
   });
 }
@@ -302,7 +307,7 @@ function setupSectionStepScroll() {
   };
 
   const scrollSectionToCenter = section => {
-    const targetTop = clampScrollTop(getSectionCenter(section) - window.innerHeight / 2);
+    const targetTop = clampScrollTop(getCenteredSectionScrollTop(section, sections));
     animateScrollTo(targetTop);
   };
 

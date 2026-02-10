@@ -98,9 +98,11 @@ function initGalleryPage() {
   let stickyScrollHandler = null;
   let stickyResizeHandler = null;
   let keydownHandler = null;
+  let swipeHintTimeoutId = 0;
   const lightbox = document.getElementById('lightbox');
   if (lightbox) {
     const lightboxImg = lightbox.querySelector('img');
+    const swipeHint = lightbox.querySelector('.lightbox-swipe-hint');
     const images = Array.from(document.querySelectorAll('.mosaic-grid img'));
     let orderedImages = [];
     const prevBtn = lightbox.querySelector('.lightbox-prev');
@@ -118,6 +120,44 @@ function initGalleryPage() {
     let touchDeltaY = 0;
     let trackingTouch = false;
     let suppressImageTapClose = false;
+
+    function hasSeenSwipeHint() {
+      try {
+        return window.sessionStorage.getItem('lightboxSwipeHintSeen') === '1';
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function setSeenSwipeHint() {
+      try {
+        window.sessionStorage.setItem('lightboxSwipeHintSeen', '1');
+      } catch (error) {
+        // Storage can be unavailable in private mode; ignore silently.
+      }
+    }
+
+    function hideSwipeHint(markSeen = false) {
+      if (!swipeHint) return;
+      swipeHint.classList.remove('is-visible');
+      if (swipeHintTimeoutId) {
+        window.clearTimeout(swipeHintTimeoutId);
+        swipeHintTimeoutId = 0;
+      }
+      if (markSeen) setSeenSwipeHint();
+    }
+
+    function maybeShowSwipeHint() {
+      if (!swipeHint) return;
+      if (window.innerWidth > 700) return;
+      if (hasSeenSwipeHint()) return;
+
+      swipeHint.classList.add('is-visible');
+      if (swipeHintTimeoutId) window.clearTimeout(swipeHintTimeoutId);
+      swipeHintTimeoutId = window.setTimeout(() => {
+        hideSwipeHint(true);
+      }, 2400);
+    }
 
     function updateOrderedImages() {
       orderedImages = images
@@ -227,6 +267,7 @@ function initGalleryPage() {
           lightboxImg.style.transform = 'translate(-50%, -50%)';
         });
       });
+      maybeShowSwipeHint();
       updateProgress();
       preload(index + 1);
       preload(index - 1);
@@ -244,6 +285,7 @@ function initGalleryPage() {
       lightboxImg.style.transform = 'none';
       // A háttér fade-out induljon azonnal, szinkronban a kicsinyítéssel
       lightbox.classList.remove('is-visible');
+      hideSwipeHint();
       setTimeout(() => {
         document.body.style.overflow = '';
         lastRect = null;
@@ -343,10 +385,12 @@ function initGalleryPage() {
     // Nyilak kattintásra lapozás
     prevBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+      hideSwipeHint(true);
       showImage((currentIndex - 1 + images.length) % images.length, -1);
     });
     nextBtn.addEventListener('click', function(e) {
       e.stopPropagation();
+      hideSwipeHint(true);
       showImage((currentIndex + 1) % images.length, 1);
     });
 
@@ -372,6 +416,7 @@ function initGalleryPage() {
     function onTouchStart(e) {
       if (!lightbox.classList.contains('is-visible')) return;
       if (!e.touches || e.touches.length !== 1) return;
+      hideSwipeHint(true);
       const touch = e.touches[0];
       touchStartX = touch.clientX;
       touchStartY = touch.clientY;
@@ -454,6 +499,7 @@ function initGalleryPage() {
     if (stickyScrollHandler) window.removeEventListener('scroll', stickyScrollHandler);
     if (stickyResizeHandler) window.removeEventListener('resize', stickyResizeHandler);
     if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
+    if (swipeHintTimeoutId) window.clearTimeout(swipeHintTimeoutId);
   };
 }
 

@@ -119,6 +119,8 @@ body:not(.gallery-page) main > section {
 
 .logo {
   font-weight: 500;
+  color: var(--text);
+  text-decoration: none;
 }
 
 .main-nav {
@@ -313,6 +315,11 @@ body:not(.gallery-page) .site-footer::after {
   backdrop-filter: blur(6px);
 }
 
+body:not(.gallery-page) .site-footer,
+body:not(.gallery-page) .site-footer::after {
+  background: rgba(var(--bg-rgb), 0.74);
+}
+
 body:not(.gallery-page) .intro-section + .manifesto-section,
 body:not(.gallery-page) .intro-section + .content-section,
 body:not(.gallery-page) .manifesto-section + .content-section,
@@ -376,12 +383,90 @@ body:not(.gallery-page) .content-section + .content-section {
    =========================== */
 
 .section-label {
-  text-align: center;
-  font-size: clamp(1.2rem, 2vw, 1.6rem);
-  letter-spacing: 0.25em;
+  text-align: left;
+  font-size: clamp(1.12rem, 1.45vw, 1.36rem);
+  letter-spacing: 0.28em;
   font-weight: 500;
+  text-transform: uppercase;
+  font-variant-caps: all-small-caps;
   color: var(--muted);
-  margin-bottom: 64px;
+  margin-bottom: clamp(26px, 4.4vh, 46px);
+}
+
+.section-copy {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--text);
+  font-size: clamp(1rem, 1.02vw, 1.08rem);
+  line-height: 1.8;
+  text-wrap: pretty;
+}
+
+.section-copy + .section-copy {
+  margin-top: 14px;
+}
+
+.section-copy-lead {
+  font-size: clamp(1.05rem, 1.08vw, 1.14rem);
+  font-weight: 500;
+}
+
+.section-copy-soft {
+  color: var(--muted);
+}
+
+.section-copy-gap {
+  margin-top: clamp(26px, 4vh, 42px);
+}
+
+.section-copy-tail {
+  margin-top: clamp(20px, 3vh, 34px);
+}
+
+.street-emphasis {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.street-copy-tight {
+  max-width: 30ch;
+}
+
+.street-standalone {
+  margin-top: 10px;
+  max-width: 24ch;
+}
+
+.street-tail {
+  max-width: 28ch;
+}
+
+.lifestyle-cadence {
+  display: inline-block;
+  margin-top: 6px;
+}
+
+.still-standalone {
+  margin-top: clamp(14px, 3.8vh, 34px);
+}
+
+.still-tail {
+  color: rgba(17, 17, 17, 0.65);
+}
+
+.section-cta {
+  margin-top: clamp(28px, 4.2vh, 48px);
+}
+
+.section-cta a {
+  font-size: clamp(0.96rem, 1.02vw, 1.06rem);
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.section-cta a:hover {
+  color: var(--text);
 }
 
 /* ===========================
@@ -411,9 +496,6 @@ body:not(.gallery-page) .image-wrapper img {
   max-height: 70vh;
   margin: 0 auto;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow:
-    0 0 38px rgba(0,0,0,0.16),
-    0 0 14px rgba(0,0,0,0.09);
 }
 
 /* =================================================
@@ -535,6 +617,18 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
 }
 
 @media (max-width: 600px) {
+  .mosaic-grid {
+    column-count: 2;
+    column-gap: 8px;
+    padding: 0 6px;
+  }
+
+  .mosaic-grid img {
+    margin-bottom: 8px;
+  }
+}
+
+@media (max-width: 389px) {
   .mosaic-grid {
     column-count: 1;
   }
@@ -659,10 +753,41 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
   transform: translate(-50%, -50%) rotate(45deg);
 }
 
+.lightbox-swipe-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 62px;
+  transform: translateX(-50%) translateY(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  z-index: 13;
+}
+
+.lightbox-swipe-hint span {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  background: rgba(0, 0, 0, 0.28);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+}
+
+.lightbox-swipe-hint.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
 /* mobilon nyilak el */
 @media (max-width: 700px) {
   .lightbox-nav {
     display: none;
+  }
+
+  .lightbox-swipe-hint {
+    bottom: 52px;
   }
 }
 
@@ -1012,6 +1137,39 @@ body:not(.gallery-page) .scroll-fade-overlay {
     padding: 72px 16px;
   }
 
+  body:not(.gallery-page) {
+    scroll-snap-type: none;
+  }
+
+  body:not(.gallery-page) .intro-section,
+  body:not(.gallery-page) .manifesto-section,
+  body:not(.gallery-page) .content-section {
+    min-height: auto;
+    align-items: flex-start;
+  }
+
+  body:not(.gallery-page) .intro-section + .manifesto-section,
+  body:not(.gallery-page) .intro-section + .content-section,
+  body:not(.gallery-page) .manifesto-section + .content-section,
+  body:not(.gallery-page) .content-section + .content-section {
+    margin-top: clamp(42px, 8vh, 72px);
+  }
+
+  .section-label {
+    letter-spacing: 0.16em;
+    margin-bottom: 18px;
+  }
+
+  .section-copy {
+    max-width: 32ch;
+    line-height: 1.86;
+  }
+
+  .section-cta a {
+    display: inline-block;
+    padding: 8px 0;
+  }
+
   body:not(.gallery-page) .image-wrapper img {
     max-height: min(56vh, 460px);
   }
@@ -1034,6 +1192,11 @@ body:not(.gallery-page) .scroll-fade-overlay {
     left: 7%;
     right: 7%;
     bottom: 22px;
+  }
+
+  .lightbox-swipe-hint span {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
   }
 }
 
