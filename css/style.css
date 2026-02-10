@@ -12,6 +12,7 @@
   --header-height: 64px;
   --footer-height: 56px;
   --chrome-alpha: 0.78;
+  --chrome-alpha-gallery-like: 0.94;
   --bg: #f7f7f7;
   --bg-rgb: 247, 247, 247;
   --bg-top: #f2f2f2;
@@ -39,7 +40,7 @@ html {
   scroll-behavior: smooth;
 }
 
-/* Index oldalon a görgetés a szekciókhoz "pattan". */
+/* Index oldalon a gÃ¶rgetÃ©s a szekciÃ³khoz "pattan". */
 body:not(.gallery-page) {
   scroll-snap-type: y proximity;
   scroll-padding-top: calc(var(--header-height) / 2);
@@ -52,7 +53,7 @@ body:not(.gallery-page) main > section {
 }
 
 /* ===========================
-   SCROLLBAR – MINIMAL
+   SCROLLBAR â€“ MINIMAL
    =========================== */
 
 /* Firefox */
@@ -296,13 +297,25 @@ body {
 }
 
 body:not(.gallery-page) .intro-section,
+body:not(.gallery-page) .manifesto-section,
 body:not(.gallery-page) .content-section {
   min-height: calc(100dvh - var(--header-height) - var(--footer-height));
   display: flex;
   align-items: center;
 }
 
+/* A kezdolapon a header/footer ugyanazt a szin-es atlatszosag erzetet kapja, mint a galeria feluletei. */
+body:not(.gallery-page) .site-header,
+body:not(.gallery-page) .site-footer,
+body:not(.gallery-page) .site-header::after,
+body:not(.gallery-page) .site-footer::after {
+  background: rgba(var(--bg-rgb), var(--chrome-alpha-gallery-like));
+  backdrop-filter: blur(6px);
+}
+
+body:not(.gallery-page) .intro-section + .manifesto-section,
 body:not(.gallery-page) .intro-section + .content-section,
+body:not(.gallery-page) .manifesto-section + .content-section,
 body:not(.gallery-page) .content-section + .content-section {
   margin-top: clamp(56px, 10vh, 140px);
 }
@@ -317,30 +330,32 @@ body:not(.gallery-page) .content-section + .content-section {
 
 @media (min-width: 900px) {
   .content-block {
-    grid-template-columns: 1.2fr 0.8fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(40px, 6vw, 92px);
+    align-items: center;
   }
 
-  #street .content-block {
-    grid-template-columns: 0.85fr 1.15fr;
-  }
-
-  .content-block.reverse .image-wrapper {
+  body:not(.gallery-page) .content-block.reverse .image-wrapper {
     order: 2;
+    justify-self: start;
   }
 
-  .content-block.reverse .text-wrapper {
+  body:not(.gallery-page) .content-block.reverse .text-wrapper {
     order: 1;
+    justify-self: end;
+  }
+
+  body:not(.gallery-page) .content-block .image-wrapper {
+    justify-self: end;
+  }
+
+  body:not(.gallery-page) .content-block .text-wrapper {
+    width: min(100%, 36ch);
+    justify-self: start;
   }
 }
 
-#about .content-block,
-#contact .content-block {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#about .about-text {
+.about-text {
   max-width: 56ch;
   font-size: clamp(1.05rem, 1.2vw, 1.18rem);
   line-height: 1.85;
@@ -350,10 +365,11 @@ body:not(.gallery-page) .content-section + .content-section {
 }
 
 @media (max-width: 600px) {
-  #about .about-text {
+  .about-text {
     text-align: left;
   }
 }
+
 
 /* ===========================
    SECTION LABEL
@@ -377,7 +393,7 @@ body:not(.gallery-page) .image-wrapper {
   justify-content: center;
   justify-self: center;
   width: fit-content;
-  max-width: 100%;
+  max-width: min(100%, clamp(320px, 38vw, 560px));
   padding: 14px;
   background: linear-gradient(145deg, #fdfdfd, #f3f3f3);
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -393,23 +409,15 @@ body:not(.gallery-page) .image-wrapper img {
   height: auto;
   max-width: 100%;
   max-height: 70vh;
+  margin: 0 auto;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow:
     0 0 38px rgba(0,0,0,0.16),
     0 0 14px rgba(0,0,0,0.09);
 }
 
-#street .image-wrapper {
-  width: min(100%, clamp(460px, 56vw, 940px));
-}
-
-#street .image-wrapper img {
-  width: 100%;
-  max-width: none;
-}
-
 /* =================================================
-   GALLERY PAGE – EDITORIAL MASONRY
+   GALLERY PAGE â€“ EDITORIAL MASONRY
    ================================================= */
 
 body.gallery-page .gallery-section {
@@ -465,7 +473,7 @@ body.gallery-page .gallery-title::before {
   z-index: -1;
 }
 
-/* Csak az első szekciónál legyen headerhez csatlakozó ív */
+/* Csak az elsÅ‘ szekciÃ³nÃ¡l legyen headerhez csatlakozÃ³ Ã­v */
 body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::before,
 body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
   display: none;
@@ -507,7 +515,7 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
 }
 
 /* ===========================
-   RESPONSIVE – GALÉRIA
+   RESPONSIVE â€“ GALÃ‰RIA
    =========================== */
 
 @media (max-width: 1300px) {
@@ -533,7 +541,7 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
 }
 
 /* ===========================
-   LIGHTBOX – ADVANCED
+   LIGHTBOX â€“ ADVANCED
    =========================== */
 
 .lightbox {
@@ -723,7 +731,7 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
 }
 
 /* ===========================
-   INDEX – OLDALSÓ GRADIENS
+   INDEX â€“ OLDALSÃ“ GRADIENS
    =========================== */
 
 body:not(.gallery-page) .scroll-fade-overlay {
@@ -751,52 +759,101 @@ body:not(.gallery-page) .scroll-fade-overlay {
 }
 
 /* ===========================
-   INTRO – megszólítás + szöveg
+   INTRO â€“ megszÃ³lÃ­tÃ¡s + szÃ¶veg
    =========================== */
 
 .intro-inner {
   max-width: 52ch;
   margin: 0 auto;
+  min-height: clamp(160px, 22vh, 280px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: clamp(20px, 6vh, 72px);
   font-size: clamp(1.05rem, 1.15vw, 1.15rem);
   line-height: 1.75;
 }
 
-/* Üdvözöllek */
 .intro-lead {
   text-align: center;
-  margin-bottom: 1.8em;
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  letter-spacing: 0.04em;
 }
 
-/* alatta folyó szöveg */
-.intro-inner p:not(.intro-lead) {
-  text-align: justify;
-  hyphens: auto;
+.intro-copy {
+  margin-top: clamp(18px, 2.4vh, 30px);
+  max-width: 44ch;
+  text-align: center;
+  color: var(--muted);
+  font-size: clamp(1rem, 1.1vw, 1.12rem);
+  line-height: 1.7;
 }
 
-/* mobilon ne legyen sorkizárt */
 @media (max-width: 600px) {
-  .intro-inner p:not(.intro-lead) {
+  .intro-inner {
+    min-height: clamp(120px, 18vh, 200px);
+    padding-top: clamp(12px, 3vh, 24px);
+  }
+
+  .intro-copy {
+    text-align: left;
+  }
+
+  .manifesto-inner {
     text-align: left;
   }
 }
 
-/* lélegzet az intro után */
+
+/* lÃ©legzet az intro utÃ¡n */
 .intro-section {
   padding-bottom: 0;
 }
 
+.manifesto-section {
+  padding: clamp(18px, 3vh, 36px) 24px clamp(20px, 4vh, 44px);
+}
+
+.manifesto-inner {
+  width: min(100%, 62ch);
+  margin: 0 auto;
+  display: grid;
+  gap: clamp(14px, 2.1vh, 22px);
+  font-size: clamp(1.02rem, 1.08vw, 1.14rem);
+  line-height: 1.82;
+  color: var(--muted);
+  text-align: justify;
+  text-wrap: pretty;
+}
+
+.manifesto-inner p {
+  margin: 0;
+}
+
+.manifesto-inner strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.manifesto-inner em {
+  color: var(--text);
+  font-style: italic;
+}
+
 
 /* ===========================
-   NÉVJEGY + KAPCSOLAT
-   középre zárt, személyes hang
+   NÃ‰VJEGY + KAPCSOLAT
+   kÃ¶zÃ©pre zÃ¡rt, szemÃ©lyes hang
    =========================== */
 
-#about .content-block,
 #contact .content-block {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
+
 
 @media (max-width: 900px) {
   :root {
@@ -979,3 +1036,4 @@ body:not(.gallery-page) .scroll-fade-overlay {
     bottom: 22px;
   }
 }
+

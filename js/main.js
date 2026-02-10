@@ -52,6 +52,7 @@ function updateIndexScrollEffects() {
   const maxDistance = window.innerHeight * 0.45;
 
   const heroMotto = document.querySelector('.hero-motto');
+  const introSection = document.querySelector('.intro-section');
   const indexImages = document.querySelectorAll('body:not(.gallery-page) .image-wrapper img');
   const indexTexts = document.querySelectorAll('body:not(.gallery-page) .scroll-text:not(.hero-motto)');
   const navSections = document.querySelectorAll('main section[id]');
@@ -88,6 +89,20 @@ function updateIndexScrollEffects() {
   });
 
   if (navLinks.length && navSections.length) {
+    if (introSection) {
+      const introRect = introSection.getBoundingClientRect();
+      const introCenter = introRect.top + introRect.height / 2;
+      const introDistance = Math.abs(introCenter - viewportCenter);
+      const introInfluenceRadius = window.innerHeight * 0.42;
+
+      if (introDistance <= introInfluenceRadius) {
+        navLinks.forEach(link => {
+          link.classList.toggle('is-active', link.getAttribute('href') === '#home');
+        });
+        return;
+      }
+    }
+
     let closestSection = null;
     let closestDistance = Infinity;
 
@@ -103,8 +118,9 @@ function updateIndexScrollEffects() {
 
     if (closestSection) {
       const activeId = closestSection.getAttribute('id');
+      const activeHash = activeId ? `#${activeId}` : '';
       navLinks.forEach(link => {
-        link.classList.toggle('is-active', link.getAttribute('href') === `#${activeId}`);
+        link.classList.toggle('is-active', activeHash && link.getAttribute('href') === activeHash);
       });
     }
   }
@@ -140,6 +156,69 @@ function preloadGalleryImages() {
   } else {
     setTimeout(run, 0);
   }
+}
+
+let anchorScrollAnimationFrame = 0;
+function animateScrollToTop(targetTop, durationMs = 920, onDone = null) {
+  const startTop = window.scrollY;
+  const delta = targetTop - startTop;
+  if (Math.abs(delta) < 1) {
+    if (typeof onDone === 'function') onDone();
+    return;
+  }
+
+  if (anchorScrollAnimationFrame) {
+    cancelAnimationFrame(anchorScrollAnimationFrame);
+    anchorScrollAnimationFrame = 0;
+  }
+
+  const startTime = performance.now();
+  const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+  const step = now => {
+    const elapsed = now - startTime;
+    const progress = Math.min(elapsed / durationMs, 1);
+    const eased = easeInOutCubic(progress);
+    window.scrollTo(0, startTop + delta * eased);
+
+    if (progress < 1) {
+      anchorScrollAnimationFrame = requestAnimationFrame(step);
+      return;
+    }
+
+    anchorScrollAnimationFrame = 0;
+    if (typeof onDone === 'function') onDone();
+  };
+
+  anchorScrollAnimationFrame = requestAnimationFrame(step);
+}
+
+function getCenteredSectionScrollTop(section) {
+  const rect = section.getBoundingClientRect();
+  const sectionCenter = window.scrollY + rect.top + rect.height / 2;
+  const desiredTop = sectionCenter - window.innerHeight / 2;
+  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  return Math.min(Math.max(desiredTop, 0), maxScroll);
+}
+
+function setupSmoothInPageAnchors() {
+  document.addEventListener('click', e => {
+    const link = e.target.closest('a[href]');
+    if (!link) return;
+
+    const url = new URL(link.getAttribute('href'), window.location.href);
+    const isSamePage = url.pathname === window.location.pathname && url.origin === window.location.origin;
+    if (!isSamePage || !url.hash || url.hash.length < 2) return;
+
+    const target = document.querySelector(url.hash);
+    if (!target) return;
+
+    e.preventDefault();
+    closeMobileMenu();
+
+    animateScrollToTop(getCenteredSectionScrollTop(target));
+    history.pushState(null, '', url.hash);
+  });
 }
 
 function applyAlternatingContentLayout() {
@@ -242,6 +321,7 @@ function setupSectionStepScroll() {
 
       const currentIndex = getClosestSectionIndex();
       const direction = e.deltaY > 0 ? 1 : -1;
+
       const targetIndex = Math.min(Math.max(currentIndex + direction, 0), sections.length - 1);
 
       if (targetIndex === currentIndex) return;
@@ -276,6 +356,7 @@ window.addEventListener('pageshow', () => {
 });
 
 setupMobileMenu();
+setupSmoothInPageAnchors();
 applyAlternatingContentLayout();
 updateIndexScrollEffects();
 setupSectionStepScroll();
