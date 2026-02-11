@@ -272,6 +272,7 @@ function initGalleryPage() {
       lightboxImg.style.height = rect.height + 'px';
       lightboxImg.style.transform = 'none';
       lightbox.classList.add('is-visible');
+      document.body.classList.add('lightbox-open');
       document.body.style.overflow = 'hidden';
       // Két frame után indítjuk, hogy biztosan érvényesüljön a kezdeti állapot
       requestAnimationFrame(() => {
@@ -304,6 +305,7 @@ function initGalleryPage() {
       lightboxImg.style.transform = 'none';
       // A háttér fade-out induljon azonnal, szinkronban a kicsinyítéssel
       lightbox.classList.remove('is-visible');
+      document.body.classList.remove('lightbox-open');
       hideSwipeHint();
       setTimeout(() => {
         document.body.style.overflow = '';
@@ -519,6 +521,7 @@ function initGalleryPage() {
     if (stickyResizeHandler) window.removeEventListener('resize', stickyResizeHandler);
     if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
     if (swipeHintTimeoutId) window.clearTimeout(swipeHintTimeoutId);
+    document.body.classList.remove('lightbox-open');
   };
 }
 

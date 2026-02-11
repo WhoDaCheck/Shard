@@ -48,8 +48,11 @@ function updateIndexScrollEffects() {
     getComputedStyle(document.documentElement).getPropertyValue('--header-height')
   );
 
-  const viewportCenter = window.innerHeight * 0.45 + headerHeight / 2;
-  const maxDistance = window.innerHeight * 0.45;
+  const isMobileViewport = window.matchMedia('(max-width: 600px)').matches;
+  const viewportCenterRatio = isMobileViewport ? 0.58 : 0.45;
+  const maxDistanceRatio = isMobileViewport ? 0.68 : 0.45;
+  const viewportCenter = window.innerHeight * viewportCenterRatio + headerHeight / 2;
+  const maxDistance = window.innerHeight * maxDistanceRatio;
 
   const heroMotto = document.querySelector('.hero-motto');
   const introSection = document.querySelector('.intro-section');
@@ -139,22 +142,69 @@ function scheduleIndexScrollEffects() {
 function preloadGalleryImages() {
   if (document.body.classList.contains('gallery-page')) return;
 
+  const supportsWebp = (() => {
+    try {
+      const canvas = document.createElement('canvas');
+      return canvas.toDataURL('image/webp').startsWith('data:image/webp');
+    } catch (error) {
+      return false;
+    }
+  })();
+
+  const extension = supportsWebp ? 'webp' : 'jpg';
   const imagesToPreload = [];
-  for (let i = 1; i <= 10; i++) {
-    imagesToPreload.push(`./images/gallery/portrait/portrait-${String(i).padStart(2, '0')}.jpg`);
-  }
+  const addSeries = (folder, prefix, count) => {
+    for (let i = 1; i <= count; i++) {
+      imagesToPreload.push(
+        `./images/gallery/${folder}/${prefix}-${String(i).padStart(2, '0')}.${extension}`
+      );
+    }
+  };
+
+  addSeries('portrait', 'portrait', 12);
+  addSeries('lifestyle', 'lifestyle', 12);
+  addSeries('street', 'street', 21);
+  addSeries('still-life', 'still-life', 6);
+
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+  const saveDataEnabled = Boolean(connection && connection.saveData);
+  const effectiveType = connection && connection.effectiveType ? connection.effectiveType : '';
+  const onSlowNetwork = /(^|[^a-z])2g/.test(effectiveType) || effectiveType === 'slow-2g';
+  const preloadLimit = saveDataEnabled ? 0 : onSlowNetwork ? 12 : imagesToPreload.length;
+  if (preloadLimit === 0) return;
 
   const run = () => {
-    imagesToPreload.forEach(src => {
-      const img = new Image();
-      img.src = src;
-    });
+    const urls = imagesToPreload.slice(0, preloadLimit);
+    let index = 0;
+    const MAX_CONCURRENT = 2;
+    let inFlight = 0;
+
+    const pump = () => {
+      while (inFlight < MAX_CONCURRENT && index < urls.length) {
+        const img = new Image();
+        const src = urls[index++];
+        inFlight += 1;
+
+        const done = () => {
+          inFlight -= 1;
+          if (index < urls.length) {
+            window.setTimeout(pump, 16);
+          }
+        };
+
+        img.onload = done;
+        img.onerror = done;
+        img.src = src;
+      }
+    };
+
+    pump();
   };
 
   if ('requestIdleCallback' in window) {
-    requestIdleCallback(run);
+    requestIdleCallback(run, { timeout: 1800 });
   } else {
-    setTimeout(run, 0);
+    setTimeout(run, 300);
   }
 }
 
@@ -196,13 +246,54 @@ function animateScrollToTop(targetTop, durationMs = 920, onDone = null) {
 function getCenteredSectionScrollTop(section, sections = []) {
   const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
   const sectionIndex = sections.indexOf(section);
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+  ) || 0;
+  const footerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--footer-height')
+  ) || 0;
+  const usableViewportHeight = Math.max(window.innerHeight - headerHeight - footerHeight, 0);
+  const visibleViewportCenterOffset = headerHeight + usableViewportHeight / 2;
 
   if (sectionIndex === 0) return 0;
 
   const rect = section.getBoundingClientRect();
   const sectionCenter = window.scrollY + rect.top + rect.height / 2;
-  const desiredTop = sectionCenter - window.innerHeight / 2;
+  const desiredTop = sectionCenter - visibleViewportCenterOffset;
   return Math.min(Math.max(desiredTop, 0), maxScroll);
+}
+
+function updateIndexEndSpacer() {
+  if (document.body.classList.contains('gallery-page')) return;
+
+  const sections = Array.from(document.querySelectorAll('main > section'));
+  if (!sections.length) {
+    document.documentElement.style.setProperty('--index-end-spacer', '0px');
+    return;
+  }
+
+  const lastSection = sections[sections.length - 1];
+  const currentSpacer = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--index-end-spacer')
+  ) || 0;
+  const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const baseMaxScroll = Math.max(0, maxScroll - currentSpacer);
+
+  const headerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+  ) || 0;
+  const footerHeight = parseFloat(
+    getComputedStyle(document.documentElement).getPropertyValue('--footer-height')
+  ) || 0;
+  const usableViewportHeight = Math.max(window.innerHeight - headerHeight - footerHeight, 0);
+  const visibleViewportCenterOffset = headerHeight + usableViewportHeight / 2;
+
+  const rect = lastSection.getBoundingClientRect();
+  const sectionCenter = window.scrollY + rect.top + rect.height / 2;
+  const desiredTop = Math.max(sectionCenter - visibleViewportCenterOffset, 0);
+  const neededSpacer = Math.max(desiredTop - baseMaxScroll, 0);
+
+  document.documentElement.style.setProperty('--index-end-spacer', `${Math.round(neededSpacer)}px`);
 }
 
 function setupSmoothInPageAnchors() {
@@ -278,7 +369,16 @@ function setupSectionStepScroll() {
     return closestIndex;
   };
 
-  const getViewportCenter = () => window.scrollY + window.innerHeight / 2;
+  const getViewportCenter = () => {
+    const headerHeight = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+    ) || 0;
+    const footerHeight = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--footer-height')
+    ) || 0;
+    const usableViewportHeight = Math.max(window.innerHeight - headerHeight - footerHeight, 0);
+    return window.scrollY + headerHeight + usableViewportHeight / 2;
+  };
 
   const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
@@ -344,7 +444,10 @@ function setupSectionStepScroll() {
 }
 
 window.addEventListener('scroll', scheduleIndexScrollEffects, { passive: true });
-window.addEventListener('resize', updateIndexScrollEffects);
+window.addEventListener('resize', () => {
+  updateIndexEndSpacer();
+  updateIndexScrollEffects();
+});
 document.addEventListener('DOMContentLoaded', preloadGalleryImages);
 document.addEventListener('DOMContentLoaded', applyAlternatingContentLayout);
 document.addEventListener('DOMContentLoaded', setupSectionStepScroll);
@@ -358,10 +461,13 @@ document.addEventListener('click', e => {
 window.addEventListener('pageshow', () => {
   const main = document.querySelector('main');
   if (main) main.classList.remove('is-fading');
+  updateIndexEndSpacer();
+  updateIndexScrollEffects();
 });
 
 setupMobileMenu();
 setupSmoothInPageAnchors();
 applyAlternatingContentLayout();
+updateIndexEndSpacer();
 updateIndexScrollEffects();
 setupSectionStepScroll();
