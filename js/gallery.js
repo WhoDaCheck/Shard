@@ -121,6 +121,25 @@ function initGalleryPage() {
     let trackingTouch = false;
     let suppressImageTapClose = false;
 
+    function getImageSourceForLightbox(img) {
+      if (!img) return '';
+      if (img.currentSrc) return img.currentSrc;
+
+      const parent = img.parentElement;
+      if (parent && parent.tagName === 'PICTURE') {
+        const webpSource = parent.querySelector('source[type="image/webp"]');
+        if (webpSource) {
+          const srcset = webpSource.getAttribute('srcset') || '';
+          const firstCandidate = srcset.split(',')[0].trim().split(/\s+/)[0];
+          if (firstCandidate) {
+            return new URL(firstCandidate, window.location.href).href;
+          }
+        }
+      }
+
+      return img.src;
+    }
+
     function hasSeenSwipeHint() {
       try {
         return window.sessionStorage.getItem('lightboxSwipeHintSeen') === '1';
@@ -242,7 +261,7 @@ function initGalleryPage() {
       const rect = lastImg.getBoundingClientRect();
       const aspect = rect.width / rect.height;
       lastRect = rect; // csak a méret miatt
-      lightboxImg.src = lastImg.src;
+      lightboxImg.src = getImageSourceForLightbox(lastImg);
       lightboxImg.style.position = 'fixed';
       lightboxImg.style.transition = 'none';
       lightboxImg.style.opacity = '0';
@@ -320,7 +339,7 @@ function initGalleryPage() {
       const onFadeOut = () => {
         lightboxImg.removeEventListener('transitionend', onFadeOut);
         lastImg = orderedImages[index];
-        lightboxImg.src = lastImg.src;
+        lightboxImg.src = getImageSourceForLightbox(lastImg);
 
         const onLoad = () => {
           lightboxImg.removeEventListener('load', onLoad);
@@ -462,7 +481,7 @@ function initGalleryPage() {
     function preload(index) {
       if (orderedImages[index]) {
         const img = new Image();
-        img.src = orderedImages[index].src;
+        img.src = getImageSourceForLightbox(orderedImages[index]);
       }
     }
 

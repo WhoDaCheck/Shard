@@ -574,13 +574,19 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
   touch-action: pan-y;
 }
 
+.mosaic-grid picture {
+  display: block;
+  margin-bottom: 9px;
+  break-inside: avoid;
+}
+
 .mosaic-grid img {
   --scroll-scale: 1;
   --hover-scale: 1;
   width: 100%;
   height: auto;
   display: block;
-  margin-bottom: 9px;
+  margin-bottom: 0;
   break-inside: avoid;
   opacity: 1;
   cursor: pointer;
@@ -624,6 +630,10 @@ body.gallery-page .gallery-section:not(:first-of-type) .gallery-title::after {
   }
 
   .mosaic-grid img {
+    margin-bottom: 0;
+  }
+
+  .mosaic-grid picture {
     margin-bottom: 8px;
   }
 }
@@ -1146,6 +1156,11 @@ body:not(.gallery-page) .scroll-fade-overlay {
   body:not(.gallery-page) .content-section {
     min-height: auto;
     align-items: flex-start;
+  }
+
+  .intro-section {
+    padding-left: 24px;
+    padding-right: 24px;
   }
 
   body:not(.gallery-page) .intro-section + .manifesto-section,
