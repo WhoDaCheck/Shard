@@ -141,7 +141,7 @@ function preloadGalleryImages() {
 
   const imagesToPreload = [];
   for (let i = 1; i <= 10; i++) {
-    imagesToPreload.push(`./images/gallery/swipe-portrait/sp${i}.jpg`);
+    imagesToPreload.push(`./images/gallery/portrait/portrait-${String(i).padStart(2, '0')}.jpg`);
   }
 
   const run = () => {
