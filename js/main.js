@@ -1,32 +1,9 @@
 // Global logic: navigation, scroll effects, mobile menu
 
 const MOBILE_MENU_BREAKPOINT = 900;
-const SECTION_FILM_FLASH_CLASS = 'is-section-film-flash';
-const SECTION_FILM_FLASH_DURATION_MS = 300;
-let sectionFilmFlashTimeout = 0;
 
 function getScrollableSections() {
   return Array.from(document.querySelectorAll('main > section, section.pricing-section'));
-}
-
-function triggerSectionFilmFlash() {
-  if (document.body.classList.contains('gallery-page')) return;
-
-  const overlay = document.querySelector('.scroll-fade-overlay');
-  if (!overlay) return;
-
-  document.body.classList.remove(SECTION_FILM_FLASH_CLASS);
-  void overlay.offsetWidth;
-  document.body.classList.add(SECTION_FILM_FLASH_CLASS);
-
-  if (sectionFilmFlashTimeout) {
-    window.clearTimeout(sectionFilmFlashTimeout);
-  }
-
-  sectionFilmFlashTimeout = window.setTimeout(() => {
-    document.body.classList.remove(SECTION_FILM_FLASH_CLASS);
-    sectionFilmFlashTimeout = 0;
-  }, SECTION_FILM_FLASH_DURATION_MS + 32);
 }
 
 function closeMobileMenu() {
@@ -68,6 +45,62 @@ function setupMobileMenu() {
   });
 }
 
+function setupHeroWordReveal() {
+  if (document.body.classList.contains('gallery-page')) return;
+
+  const heroMotto = document.querySelector('.hero-motto');
+  if (!heroMotto || heroMotto.dataset.wordRevealReady === 'true') return;
+
+  const lineCadenceMs = [150, 210];
+  const linePauseMs = 380;
+  const logoPauseMs = 120;
+  const fragment = document.createDocumentFragment();
+  const heroLogo = document.querySelector('.hero-logo');
+  const lines = heroMotto.innerHTML
+    .split(/<br\s*\/?>/i)
+    .map(line => line.replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+
+  let timelineCursor = 0;
+
+  lines.forEach((line, lineIndex) => {
+    const lineEl = document.createElement('span');
+    lineEl.className = `hero-line hero-line-${lineIndex + 1}`;
+    const words = line.split(' ').filter(Boolean);
+    const cadence = lineCadenceMs[lineIndex] ?? lineCadenceMs[lineCadenceMs.length - 1];
+
+    words.forEach((rawWord, wordIndex) => {
+      const word = document.createElement('span');
+      word.className = 'hero-word';
+      word.style.setProperty('--word-delay', `${timelineCursor + wordIndex * cadence}ms`);
+      word.style.setProperty('--word-duration', `${lineIndex === 0 ? 900 : 1020}ms`);
+      word.textContent = rawWord;
+      lineEl.appendChild(word);
+      if (wordIndex < words.length - 1) {
+        lineEl.appendChild(document.createTextNode(' '));
+      }
+    });
+
+    fragment.appendChild(lineEl);
+    timelineCursor += words.length * cadence;
+    if (lineIndex < lines.length - 1) {
+      timelineCursor += linePauseMs;
+    }
+  });
+
+  heroMotto.replaceChildren(fragment);
+  heroMotto.dataset.wordRevealReady = 'true';
+  heroMotto.classList.add('is-word-reveal-ready');
+
+  requestAnimationFrame(() => {
+    heroMotto.classList.add('is-word-reveal-active');
+    if (heroLogo) {
+      heroLogo.style.setProperty('--logo-delay', `${timelineCursor + logoPauseMs}ms`);
+      heroLogo.classList.add('is-reveal-active');
+    }
+  });
+}
+
 function updateIndexScrollEffects() {
   if (document.body.classList.contains('gallery-page')) return;
 
@@ -93,7 +126,7 @@ function updateIndexScrollEffects() {
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
     const progress = Math.min(distance / maxDistance, 1);
-    heroMotto.style.transform = `scale(${1 - progress * 0.14})`;
+    heroMotto.style.transform = 'none';
     heroMotto.style.opacity = 1 - progress * 0.65;
   }
 
@@ -112,15 +145,10 @@ function updateIndexScrollEffects() {
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
     const progress = Math.min(distance / maxDistance, 1);
-    const scale = 0.96 + (1 - progress) * 0.04;
     const opacity = 0.2 + (1 - progress) * 0.8;
     const isPricingCard = text.classList.contains('pricing-card');
     text.style.opacity = opacity.toFixed(3);
-    if (isPricingCard) {
-      text.style.transform = '';
-    } else {
-      text.style.transform = `scale(${scale.toFixed(3)})`;
-    }
+    text.style.transform = 'none';
   });
 
   if (navLinks.length && navSections.length) {
@@ -344,7 +372,6 @@ function setupSmoothInPageAnchors() {
     closeMobileMenu();
 
     const sections = getScrollableSections();
-    triggerSectionFilmFlash();
     animateScrollToTop(getCenteredSectionScrollTop(target, sections));
     history.pushState(null, '', url.hash);
   });
@@ -418,9 +445,13 @@ function setupSectionStepScroll() {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SCROLL_DURATION_MS = prefersReducedMotion ? 1320 : 1320;
   const LOCK_MS = SCROLL_DURATION_MS + 80;
-  const MIN_DELTA = 4;
+  const WHEEL_INTENT_THRESHOLD = 44;
+  const WHEEL_INTENT_RESET_MS = 140;
   let isLocked = false;
   let animationFrameId = 0;
+  let wheelIntent = 0;
+  let wheelIntentSign = 0;
+  let wheelIntentResetTimeout = 0;
 
   const clampScrollTop = value => {
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
@@ -460,6 +491,11 @@ function setupSectionStepScroll() {
   };
 
   const easeInOutCubic = t => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+  const normalizeWheelDelta = event => {
+    if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) return event.deltaY * 16;
+    if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) return event.deltaY * window.innerHeight;
+    return event.deltaY;
+  };
 
   const animateScrollTo = targetTop => {
     const startTop = window.scrollY;
@@ -496,23 +532,49 @@ function setupSectionStepScroll() {
       if (document.body.classList.contains('menu-open')) return;
       if (e.ctrlKey) return;
 
-      const delta = Math.abs(e.deltaY);
+      const deltaY = normalizeWheelDelta(e);
+      const delta = Math.abs(deltaY);
+      if (!delta) return;
+
       if (isLocked) {
-        if (delta >= MIN_DELTA) e.preventDefault();
+        e.preventDefault();
         return;
       }
-      if (delta < MIN_DELTA) return;
+
+      const direction = deltaY > 0 ? 1 : -1;
+      if (wheelIntentSign !== direction) {
+        wheelIntent = 0;
+        wheelIntentSign = direction;
+      }
+      wheelIntent += deltaY;
+
+      if (wheelIntentResetTimeout) {
+        window.clearTimeout(wheelIntentResetTimeout);
+      }
+      wheelIntentResetTimeout = window.setTimeout(() => {
+        wheelIntent = 0;
+        wheelIntentSign = 0;
+        wheelIntentResetTimeout = 0;
+      }, WHEEL_INTENT_RESET_MS);
+
+      if (Math.abs(wheelIntent) < WHEEL_INTENT_THRESHOLD) {
+        e.preventDefault();
+        return;
+      }
 
       const currentIndex = getClosestSectionIndex();
-      const direction = e.deltaY > 0 ? 1 : -1;
-
       const targetIndex = Math.min(Math.max(currentIndex + direction, 0), sections.length - 1);
 
       if (targetIndex === currentIndex) return;
 
       e.preventDefault();
       isLocked = true;
-      triggerSectionFilmFlash();
+      wheelIntent = 0;
+      wheelIntentSign = 0;
+      if (wheelIntentResetTimeout) {
+        window.clearTimeout(wheelIntentResetTimeout);
+        wheelIntentResetTimeout = 0;
+      }
       scrollSectionToCenter(sections[targetIndex]);
 
       window.setTimeout(() => {
@@ -532,6 +594,7 @@ document.addEventListener('DOMContentLoaded', preloadGalleryImages);
 document.addEventListener('DOMContentLoaded', applyAlternatingContentLayout);
 document.addEventListener('DOMContentLoaded', setupSectionStepScroll);
 document.addEventListener('DOMContentLoaded', setupPricingCards);
+document.addEventListener('DOMContentLoaded', setupHeroWordReveal);
 
 document.addEventListener('click', e => {
   const link = e.target.closest('a');
@@ -548,6 +611,7 @@ window.addEventListener('pageshow', () => {
 
 setupMobileMenu();
 setupSmoothInPageAnchors();
+setupHeroWordReveal();
 applyAlternatingContentLayout();
 updateIndexEndSpacer();
 updateIndexScrollEffects();

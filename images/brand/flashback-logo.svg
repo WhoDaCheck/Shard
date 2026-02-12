@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="120" viewBox="0 0 420 120" role="img" aria-labelledby="title desc">
+  <title id="title">Flashback logo</title>
+  <desc id="desc">Minimal line-art logo with a film-frame inspired monogram and the Flashback wordmark.</desc>
+  <g fill="none" stroke="#111111" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="8" y="14" width="92" height="92" rx="16" stroke-width="4"/>
+    <path d="M26 26h56M26 42h22" stroke-width="4"/>
+    <path d="M58 50c10.8 0 19.5 8.7 19.5 19.5S68.8 89 58 89H40V50h18z" stroke-width="4"/>
+    <path d="M40 69.5h18" stroke-width="4"/>
+    <path d="M18 97l72-72" stroke-width="2.6" opacity="0.45"/>
+    <path d="M24 103l72-72" stroke-width="2.6" opacity="0.35"/>
+  </g>
+  <g fill="#111111">
+    <text x="122" y="74" font-family="'Avenir Next', 'Segoe UI', sans-serif" font-size="41" font-weight="540" letter-spacing="5.5">FLASHBACK</text>
+  </g>
+</svg>
