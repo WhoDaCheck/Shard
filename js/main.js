@@ -2,6 +2,10 @@
 
 const MOBILE_MENU_BREAKPOINT = 900;
 
+function getScrollableSections() {
+  return Array.from(document.querySelectorAll('main > section, section.pricing-section'));
+}
+
 function closeMobileMenu() {
   const header = document.querySelector('.site-header');
   const toggle = document.querySelector('.nav-toggle');
@@ -58,7 +62,7 @@ function updateIndexScrollEffects() {
   const introSection = document.querySelector('.intro-section');
   const indexImages = document.querySelectorAll('body:not(.gallery-page) .image-wrapper img');
   const indexTexts = document.querySelectorAll('body:not(.gallery-page) .scroll-text:not(.hero-motto)');
-  const navSections = document.querySelectorAll('main section[id]');
+  const navSections = getScrollableSections();
   const navLinks = document.querySelectorAll('.main-nav a[href^="#"]');
 
   if (heroMotto) {
@@ -87,8 +91,13 @@ function updateIndexScrollEffects() {
     const progress = Math.min(distance / maxDistance, 1);
     const scale = 0.96 + (1 - progress) * 0.04;
     const opacity = 0.2 + (1 - progress) * 0.8;
+    const isPricingCard = text.classList.contains('pricing-card');
     text.style.opacity = opacity.toFixed(3);
-    text.style.transform = `scale(${scale.toFixed(3)})`;
+    if (isPricingCard) {
+      text.style.transform = '';
+    } else {
+      text.style.transform = `scale(${scale.toFixed(3)})`;
+    }
   });
 
   if (navLinks.length && navSections.length) {
@@ -121,7 +130,7 @@ function updateIndexScrollEffects() {
 
     if (closestSection) {
       const activeId = closestSection.getAttribute('id');
-      const activeHash = activeId ? `#${activeId}` : '';
+      const activeHash = activeId ? `#${activeId}` : '#home';
       navLinks.forEach(link => {
         link.classList.toggle('is-active', activeHash && link.getAttribute('href') === activeHash);
       });
@@ -266,7 +275,7 @@ function getCenteredSectionScrollTop(section, sections = []) {
 function updateIndexEndSpacer() {
   if (document.body.classList.contains('gallery-page')) return;
 
-  const sections = Array.from(document.querySelectorAll('main > section'));
+  const sections = getScrollableSections();
   if (!sections.length) {
     document.documentElement.style.setProperty('--index-end-spacer', '0px');
     return;
@@ -311,7 +320,7 @@ function setupSmoothInPageAnchors() {
     e.preventDefault();
     closeMobileMenu();
 
-    const sections = Array.from(document.querySelectorAll('main > section'));
+    const sections = getScrollableSections();
     animateScrollToTop(getCenteredSectionScrollTop(target, sections));
     history.pushState(null, '', url.hash);
   });
@@ -327,12 +336,58 @@ function applyAlternatingContentLayout() {
   });
 }
 
+function setupPricingCards() {
+  const cards = Array.from(document.querySelectorAll('.pricing-card[data-mailto-subject]'));
+  if (!cards.length) return;
+
+  cards.forEach(card => {
+    const subject = card.getAttribute('data-mailto-subject') || '';
+    const packageName = card.querySelector('h3')?.textContent?.trim() || 'Csomag';
+    const body = [
+      'Szia Lőrinc,',
+      '',
+      `A(z) "${packageName}" csomaggal kapcsolatban érdeklődnék.`,
+      '',
+      'Tervezett dátum:',
+      'Helyszín:',
+      'Rövid leírás / elképzelés:',
+      '',
+      'Köszönöm!'
+    ].join('\n');
+    const mailtoHref = `mailto:hudacsek.lorinc@icloud.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+    const openMail = () => {
+      window.location.href = mailtoHref;
+    };
+
+    card.addEventListener('click', e => {
+      if (e.target.closest('.pricing-phone-link')) return;
+      openMail();
+    });
+
+    card.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();
+      openMail();
+    });
+  });
+
+  document.querySelectorAll('.pricing-phone-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.stopPropagation();
+    });
+    link.addEventListener('keydown', e => {
+      e.stopPropagation();
+    });
+  });
+}
+
 let sectionStepScrollInitialized = false;
 function setupSectionStepScroll() {
   if (document.body.classList.contains('gallery-page')) return;
   if (sectionStepScrollInitialized) return;
 
-  const sections = Array.from(document.querySelectorAll('main > section'));
+  const sections = getScrollableSections();
   if (sections.length < 2) return;
   sectionStepScrollInitialized = true;
 
@@ -451,6 +506,7 @@ window.addEventListener('resize', () => {
 document.addEventListener('DOMContentLoaded', preloadGalleryImages);
 document.addEventListener('DOMContentLoaded', applyAlternatingContentLayout);
 document.addEventListener('DOMContentLoaded', setupSectionStepScroll);
+document.addEventListener('DOMContentLoaded', setupPricingCards);
 
 document.addEventListener('click', e => {
   const link = e.target.closest('a');
@@ -471,3 +527,4 @@ applyAlternatingContentLayout();
 updateIndexEndSpacer();
 updateIndexScrollEffects();
 setupSectionStepScroll();
+setupPricingCards();
