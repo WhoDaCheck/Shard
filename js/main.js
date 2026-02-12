@@ -1,9 +1,32 @@
 // Global logic: navigation, scroll effects, mobile menu
 
 const MOBILE_MENU_BREAKPOINT = 900;
+const SECTION_FILM_FLASH_CLASS = 'is-section-film-flash';
+const SECTION_FILM_FLASH_DURATION_MS = 300;
+let sectionFilmFlashTimeout = 0;
 
 function getScrollableSections() {
   return Array.from(document.querySelectorAll('main > section, section.pricing-section'));
+}
+
+function triggerSectionFilmFlash() {
+  if (document.body.classList.contains('gallery-page')) return;
+
+  const overlay = document.querySelector('.scroll-fade-overlay');
+  if (!overlay) return;
+
+  document.body.classList.remove(SECTION_FILM_FLASH_CLASS);
+  void overlay.offsetWidth;
+  document.body.classList.add(SECTION_FILM_FLASH_CLASS);
+
+  if (sectionFilmFlashTimeout) {
+    window.clearTimeout(sectionFilmFlashTimeout);
+  }
+
+  sectionFilmFlashTimeout = window.setTimeout(() => {
+    document.body.classList.remove(SECTION_FILM_FLASH_CLASS);
+    sectionFilmFlashTimeout = 0;
+  }, SECTION_FILM_FLASH_DURATION_MS + 32);
 }
 
 function closeMobileMenu() {
@@ -321,6 +344,7 @@ function setupSmoothInPageAnchors() {
     closeMobileMenu();
 
     const sections = getScrollableSections();
+    triggerSectionFilmFlash();
     animateScrollToTop(getCenteredSectionScrollTop(target, sections));
     history.pushState(null, '', url.hash);
   });
@@ -488,6 +512,7 @@ function setupSectionStepScroll() {
 
       e.preventDefault();
       isLocked = true;
+      triggerSectionFilmFlash();
       scrollSectionToCenter(sections[targetIndex]);
 
       window.setTimeout(() => {
