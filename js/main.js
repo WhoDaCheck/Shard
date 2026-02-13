@@ -173,7 +173,7 @@ function updateIndexScrollEffects() {
     getComputedStyle(document.documentElement).getPropertyValue('--header-height')
   );
 
-  const isMobileViewport = window.matchMedia('(max-width: 600px)').matches;
+  const isMobileViewport = window.matchMedia('(max-width: 900px)').matches;
   const viewportCenterRatio = isMobileViewport ? 0.58 : 0.45;
   const maxDistanceRatio = isMobileViewport ? 0.68 : 0.45;
   const viewportCenter = window.innerHeight * viewportCenterRatio + headerHeight / 2;
@@ -187,7 +187,8 @@ function updateIndexScrollEffects() {
   const navSections = getScrollableSections();
   const navLinks = document.querySelectorAll('.main-nav a[href^="#"]');
   const pricingTop = pricingSection ? window.scrollY + pricingSection.getBoundingClientRect().top : Infinity;
-  const disableFade = window.scrollY >= pricingTop - headerHeight;
+  // On phone we keep content fully readable; no scroll-fade before pricing.
+  const disableFade = isMobileViewport || window.scrollY >= pricingTop - headerHeight;
 
   if (heroMotto && !disableFade) {
     const rect = heroMotto.getBoundingClientRect();
@@ -890,6 +891,14 @@ function setupSectionStepScroll() {
     return window.scrollY + rect.top + rect.height / 2;
   };
 
+  const getTopAlignedSectionScrollTop = section => {
+    const headerHeight = parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--header-height')
+    ) || 0;
+    const sectionTop = window.scrollY + section.getBoundingClientRect().top;
+    return clampScrollTop(Math.max(0, sectionTop - headerHeight - 4));
+  };
+
   const getClosestSectionIndex = () => {
     const viewportCenter = getViewportCenter();
     let closestIndex = 0;
@@ -978,7 +987,7 @@ function setupSectionStepScroll() {
           if (shouldSnapBackToPricing && pricingSection && !isLocked) {
             e.preventDefault();
             isLocked = true;
-            scrollSectionToCenter(pricingSection);
+            animateScrollTo(getTopAlignedSectionScrollTop(pricingSection));
             window.setTimeout(() => {
               isLocked = false;
             }, LOCK_MS);
