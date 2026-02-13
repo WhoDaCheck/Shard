@@ -152,7 +152,9 @@ function updateIndexScrollEffects() {
     const opacity = 0.2 + (1 - progress) * 0.8;
     const isPricingCard = text.classList.contains('pricing-card');
     text.style.opacity = opacity.toFixed(3);
-    text.style.transform = 'none';
+    if (!isPricingCard) {
+      text.style.transform = 'none';
+    }
   });
 
   if (navLinks.length && navSections.length) {
