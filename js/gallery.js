@@ -4,7 +4,9 @@ let galleryCleanup = null;
 const GALLERY_MIN_SCROLL_SCALE = 0.8;
 
 function initGalleryPage() {
-  if (!document.body.classList.contains('gallery-page')) return;
+  const gallerySections = document.querySelectorAll('.gallery-section');
+  const lightboxRoot = document.getElementById('lightbox');
+  if (!gallerySections.length || !lightboxRoot) return;
   if (galleryCleanup) galleryCleanup();
   // Fade effektek a mozaik képekre
   const images = document.querySelectorAll('.mosaic-grid img');
@@ -99,7 +101,7 @@ function initGalleryPage() {
   let stickyResizeHandler = null;
   let keydownHandler = null;
   let swipeHintTimeoutId = 0;
-  const lightbox = document.getElementById('lightbox');
+  const lightbox = lightboxRoot;
   if (lightbox) {
     const lightboxImg = lightbox.querySelector('img');
     const swipeHint = lightbox.querySelector('.lightbox-swipe-hint');
@@ -179,10 +181,12 @@ function initGalleryPage() {
     }
 
     function updateOrderedImages() {
+      const rowTolerancePx = 8;
       orderedImages = images
         .map(img => ({ img, rect: img.getBoundingClientRect() }))
         .sort((a, b) => {
-          if (a.rect.top === b.rect.top) return a.rect.left - b.rect.left;
+          const topDiff = a.rect.top - b.rect.top;
+          if (Math.abs(topDiff) <= rowTolerancePx) return a.rect.left - b.rect.left;
           return a.rect.top - b.rect.top;
         })
         .map(item => item.img);
@@ -386,6 +390,7 @@ function initGalleryPage() {
 
     images.forEach((img, i) => {
       img.addEventListener('click', () => {
+        updateOrderedImages();
         const idx = orderedImages.indexOf(img);
         currentIndex = idx === -1 ? i : idx;
         openZoom(currentIndex);
@@ -394,6 +399,7 @@ function initGalleryPage() {
 
     // Lapozás: showImage függvény
     function showImage(index, direction = 0) {
+      updateOrderedImages();
       if (!orderedImages[index]) return;
       if (lightbox.classList.contains('is-visible')) {
         swapImage(index, direction);

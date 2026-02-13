@@ -1,8 +1,68 @@
 // Global logic: navigation, scroll effects, mobile menu
 
 const MOBILE_MENU_BREAKPOINT = 900;
+const THEME_STORAGE_KEY = 'flashback-theme';
+
+function resolveInitialTheme() {
+  let storedTheme = null;
+  try {
+    storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+  } catch (error) {
+    storedTheme = null;
+  }
+  if (storedTheme === 'light' || storedTheme === 'dark') return storedTheme;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+function applyTheme(theme) {
+  const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
+  document.documentElement.setAttribute('data-theme', normalizedTheme);
+  const toggle = document.querySelector('.theme-toggle');
+  if (toggle) {
+    const isDark = normalizedTheme === 'dark';
+    toggle.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+    toggle.setAttribute('aria-label', isDark ? 'Vilagos mod bekapcsolasa' : 'Sotet mod bekapcsolasa');
+    const lightOption = toggle.querySelector('.theme-option-light');
+    const darkOption = toggle.querySelector('.theme-option-dark');
+    if (lightOption) lightOption.classList.toggle('is-active', !isDark);
+    if (darkOption) darkOption.classList.toggle('is-active', isDark);
+  }
+}
+
+function setupThemeToggle() {
+  const initialTheme = resolveInitialTheme();
+  applyTheme(initialTheme);
+
+  const contacts = document.querySelector('.header-contacts');
+  if (!contacts || contacts.dataset.themeToggleReady === 'true') return;
+
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'theme-toggle';
+  button.innerHTML = '<span class="theme-option theme-option-light" aria-hidden="true">☀</span><span class="theme-option theme-option-dark" aria-hidden="true">☾</span>';
+  contacts.prepend(button);
+
+  button.addEventListener('click', () => {
+    const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+    } catch (error) {
+      // Ignore storage errors in restricted environments.
+    }
+    applyTheme(nextTheme);
+  });
+
+  contacts.dataset.themeToggleReady = 'true';
+}
 
 function getScrollableSections() {
+  return Array.from(
+    document.querySelectorAll('main > section, section.pricing-section, section.gallery-embed')
+  );
+}
+
+function getLockedSections() {
   return Array.from(document.querySelectorAll('main > section, section.pricing-section'));
 }
 
@@ -51,6 +111,7 @@ function setupHeroWordReveal() {
   const heroMotto = document.querySelector('.hero-motto');
   if (!heroMotto || heroMotto.dataset.wordRevealReady === 'true') return;
 
+  const initialDelayMs = 700;
   const lineCadenceMs = [150, 210];
   const linePauseMs = 380;
   const logoPauseMs = 120;
@@ -61,7 +122,7 @@ function setupHeroWordReveal() {
     .map(line => line.replace(/\s+/g, ' ').trim())
     .filter(Boolean);
 
-  let timelineCursor = 0;
+  let timelineCursor = initialDelayMs;
 
   lines.forEach((line, lineIndex) => {
     const lineEl = document.createElement('span');
@@ -120,21 +181,32 @@ function updateIndexScrollEffects() {
 
   const heroMotto = document.querySelector('.hero-motto');
   const introSection = document.querySelector('.intro-section');
+  const pricingSection = document.querySelector('.pricing-section');
   const indexImages = document.querySelectorAll('body:not(.gallery-page) .image-wrapper img');
   const indexTexts = document.querySelectorAll('body:not(.gallery-page) .scroll-text:not(.hero-motto)');
   const navSections = getScrollableSections();
   const navLinks = document.querySelectorAll('.main-nav a[href^="#"]');
+  const pricingTop = pricingSection ? window.scrollY + pricingSection.getBoundingClientRect().top : Infinity;
+  const disableFade = window.scrollY >= pricingTop - headerHeight;
 
-  if (heroMotto) {
+  if (heroMotto && !disableFade) {
     const rect = heroMotto.getBoundingClientRect();
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
     const progress = Math.min(distance / maxDistance, 1);
     heroMotto.style.transform = 'none';
     heroMotto.style.opacity = 1 - progress * 0.65;
+  } else if (heroMotto) {
+    heroMotto.style.transform = 'none';
+    heroMotto.style.opacity = '1';
   }
 
   indexImages.forEach(img => {
+    if (disableFade) {
+      img.style.opacity = '1';
+      img.style.transform = 'none';
+      return;
+    }
     const rect = img.getBoundingClientRect();
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
@@ -145,6 +217,13 @@ function updateIndexScrollEffects() {
   });
 
   indexTexts.forEach(text => {
+    if (disableFade) {
+      text.style.opacity = '1';
+      if (!text.classList.contains('pricing-card')) {
+        text.style.transform = 'none';
+      }
+      return;
+    }
     const rect = text.getBoundingClientRect();
     const center = rect.top + rect.height / 2;
     const distance = Math.abs(center - viewportCenter);
@@ -158,6 +237,18 @@ function updateIndexScrollEffects() {
   });
 
   if (navLinks.length && navSections.length) {
+    const galleryIntro = document.getElementById('gallery-intro');
+    if (galleryIntro) {
+      const galleryIntroTop = window.scrollY + galleryIntro.getBoundingClientRect().top;
+      const galleryActivationLine = window.scrollY + headerHeight + 8;
+      if (galleryActivationLine >= galleryIntroTop) {
+        navLinks.forEach(link => {
+          link.classList.toggle('is-active', link.getAttribute('href') === '#gallery-intro');
+        });
+        return;
+      }
+    }
+
     if (introSection) {
       const introRect = introSection.getBoundingClientRect();
       const introCenter = introRect.top + introRect.height / 2;
@@ -187,7 +278,7 @@ function updateIndexScrollEffects() {
 
     if (closestSection) {
       const activeId = closestSection.getAttribute('id');
-      const activeHash = activeId ? `#${activeId}` : '#home';
+      const activeHash = activeId === 'gallery' ? '#gallery-intro' : (activeId ? `#${activeId}` : '#home');
       navLinks.forEach(link => {
         link.classList.toggle('is-active', activeHash && link.getAttribute('href') === activeHash);
       });
@@ -325,7 +416,10 @@ function getCenteredSectionScrollTop(section, sections = []) {
 
   const rect = section.getBoundingClientRect();
   const sectionCenter = window.scrollY + rect.top + rect.height / 2;
-  const desiredTop = sectionCenter - visibleViewportCenterOffset;
+  let desiredTop = sectionCenter - visibleViewportCenterOffset;
+  if (section.classList.contains('pricing-section')) {
+    desiredTop += 120;
+  }
   return Math.min(Math.max(desiredTop, 0), maxScroll);
 }
 
@@ -374,13 +468,70 @@ function setupSmoothInPageAnchors() {
     const target = document.querySelector(url.hash);
     if (!target) return;
 
+    if (url.hash === '#gallery-intro') {
+      e.preventDefault();
+      closeMobileMenu();
+      const top = window.scrollY + target.getBoundingClientRect().top;
+      const offset = (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header-height')) || 0) + 12;
+      animateScrollToTop(Math.max(0, top - offset));
+      history.pushState(null, '', url.hash);
+      return;
+    }
+
+    const lockedSections = getLockedSections();
+    if (!lockedSections.includes(target)) return;
     e.preventDefault();
     closeMobileMenu();
-
-    const sections = getScrollableSections();
-    animateScrollToTop(getCenteredSectionScrollTop(target, sections));
+    animateScrollToTop(getCenteredSectionScrollTop(target, lockedSections));
     history.pushState(null, '', url.hash);
   });
+}
+
+function setupPageFadeTransitions() {
+  const body = document.body;
+  if (!body) return;
+
+  requestAnimationFrame(() => {
+    body.classList.add('page-is-visible');
+  });
+
+  const isTransitionPath = pathname => {
+    const normalized = pathname.toLowerCase();
+    return (
+      normalized.endsWith('/index.html') ||
+      normalized.endsWith('/adatkezeles.html') ||
+      normalized.endsWith('/impresszum.html') ||
+      normalized === '/' ||
+      normalized === ''
+    );
+  };
+
+  document.addEventListener(
+    'click',
+    e => {
+      const link = e.target.closest('a[href]');
+      if (!link) return;
+      if (link.hasAttribute('download')) return;
+      if ((link.getAttribute('target') || '').toLowerCase() === '_blank') return;
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+
+      const href = link.getAttribute('href') || '';
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+
+      const url = new URL(href, window.location.href);
+      if (url.origin !== window.location.origin) return;
+      if (!isTransitionPath(url.pathname)) return;
+      if (url.href === window.location.href) return;
+
+      e.preventDefault();
+      body.classList.add('page-is-leaving');
+      body.classList.remove('page-is-visible');
+      window.setTimeout(() => {
+        window.location.href = url.href;
+      }, 220);
+    },
+    true
+  );
 }
 
 function applyAlternatingContentLayout() {
@@ -712,9 +863,11 @@ function setupSectionStepScroll() {
   if (document.body.classList.contains('gallery-page')) return;
   if (sectionStepScrollInitialized) return;
 
-  const sections = getScrollableSections();
+  const sections = getLockedSections();
   if (sections.length < 2) return;
   sectionStepScrollInitialized = true;
+  const gallerySection = document.querySelector('section.gallery-embed');
+  const pricingSection = document.querySelector('section.pricing-section');
 
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const SCROLL_DURATION_MS = prefersReducedMotion ? 1320 : 1320;
@@ -810,6 +963,30 @@ function setupSectionStepScroll() {
       const delta = Math.abs(deltaY);
       if (!delta) return;
 
+      if (gallerySection) {
+        const galleryTop = window.scrollY + gallerySection.getBoundingClientRect().top;
+        const galleryBoundaryTolerance = 26;
+        const isInsideGallery = window.scrollY >= galleryTop - 2;
+        const isNearGalleryStart =
+          window.scrollY >= galleryTop - 32 && window.scrollY <= galleryTop + 180;
+        const projectedTop = window.scrollY + deltaY;
+        const wouldCrossGalleryBoundaryUpward =
+          deltaY < 0 && projectedTop <= galleryTop + galleryBoundaryTolerance;
+        const shouldSnapBackToPricing = deltaY < 0 && (wouldCrossGalleryBoundaryUpward || isNearGalleryStart);
+
+        if (isInsideGallery) {
+          if (shouldSnapBackToPricing && pricingSection && !isLocked) {
+            e.preventDefault();
+            isLocked = true;
+            scrollSectionToCenter(pricingSection);
+            window.setTimeout(() => {
+              isLocked = false;
+            }, LOCK_MS);
+          }
+          return;
+        }
+      }
+
       if (isLocked) {
         e.preventDefault();
         return;
@@ -861,7 +1038,6 @@ function setupSectionStepScroll() {
 
 window.addEventListener('scroll', scheduleIndexScrollEffects, { passive: true });
 window.addEventListener('resize', () => {
-  updateIndexEndSpacer();
   updateIndexScrollEffects();
 });
 document.addEventListener('DOMContentLoaded', preloadGalleryImages);
@@ -880,14 +1056,19 @@ document.addEventListener('click', e => {
 window.addEventListener('pageshow', () => {
   const main = document.querySelector('main');
   if (main) main.classList.remove('is-fading');
-  updateIndexEndSpacer();
+  document.body.classList.remove('page-is-leaving');
+  document.body.classList.add('page-is-visible');
   updateIndexScrollEffects();
 });
 
 setupMobileMenu();
+setupPageFadeTransitions();
+setupThemeToggle();
+if (!document.body.classList.contains('gallery-page')) {
+  document.body.classList.add('lock-scroll-mode');
+}
 setupSmoothInPageAnchors();
 applyAlternatingContentLayout();
-updateIndexEndSpacer();
 updateIndexScrollEffects();
 setupSectionStepScroll();
 setupPricingCards();
